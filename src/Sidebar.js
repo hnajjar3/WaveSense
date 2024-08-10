@@ -4,23 +4,37 @@ function Sidebar({ onChange }) {
     const [yAxisRange, setYAxisRange] = useState(10);
     const [yOffset, setYOffset] = useState(0);
     const [channel, setChannel] = useState(0);
+    const [numPoints, setNumPoints] = useState(100);
+    const [samplingRate, setSamplingRate] = useState(1000);
 
     const handleYAxisRangeChange = (e) => {
         const value = parseInt(e.target.value, 10);
         setYAxisRange(value);
-        onChange({ yAxisRange: value, yOffset, channel });
+        onChange({ yAxisRange: value, yOffset, channel, numPoints, samplingRate });
     };
 
     const handleYOffsetChange = (e) => {
         const value = parseInt(e.target.value, 10);
         setYOffset(value);
-        onChange({ yAxisRange, yOffset: value, channel });
+        onChange({ yAxisRange, yOffset: value, channel, numPoints, samplingRate, offset: value });
     };
 
     const handleChannelChange = (e) => {
         const value = parseInt(e.target.value, 10);
         setChannel(value);
-        onChange({ yAxisRange, yOffset, channel: value });
+        onChange({ yAxisRange, yOffset, channel: value, numPoints, samplingRate });
+    };
+
+    const handleNumPointsChange = (e) => {
+        const value = parseInt(e.target.value, 10);
+        setNumPoints(value);
+        onChange({ yAxisRange, yOffset, channel, numPoints: value, samplingRate });
+    };
+
+    const handleSamplingRateChange = (e) => {
+        const value = parseInt(e.target.value, 10);
+        setSamplingRate(value);
+        onChange({ yAxisRange, yOffset, channel, numPoints, samplingRate: value });
     };
 
     return (
@@ -56,6 +70,27 @@ function Sidebar({ onChange }) {
                     <option value={2}>ch2 (Triangular)</option>
                     <option value={3}>ch3 (Rectangular)</option>
                 </select>
+            </div>
+            <div>
+                <label>Number of Points:</label>
+                <input
+                    type="range"
+                    min="100"
+                    max="1000"
+                    value={numPoints}
+                    onChange={handleNumPointsChange}
+                />
+                <span>{numPoints}</span>
+            </div>
+            <div>
+                <label>Sampling Rate (Hz):</label>
+                <input
+                    type="number"
+                    min="1"
+                    value={samplingRate}
+                    onChange={handleSamplingRateChange}
+                />
+                <span>{samplingRate} Hz</span>
             </div>
         </div>
     );

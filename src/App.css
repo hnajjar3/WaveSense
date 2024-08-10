@@ -13,13 +13,13 @@ body, html, #root, .App {
 .sidebar {
     background-color: #3b3b3b; /* Darker gray for the sidebar */
     padding: 20px;
-    width: 20%;
+    width: 10%;
     color: #f0f0f0; /* Light text color */
 }
 
 /* Chart container */
 .chart-container {
-    flex-grow: 1;
+    width: 80%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,8 +28,9 @@ body, html, #root, .App {
 
 /* Ensures the chart takes up all available space */
 .chart-container > div {
-    width: 100%;
-    height: 90%;
+    width: 80%;
+    height: 80%;
+    /*padding: 20px;*/
 }
 
 /* Override any white backgrounds */
