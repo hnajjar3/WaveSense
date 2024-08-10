@@ -39,8 +39,10 @@ function App() {
                         value: message.value,
                     };
                     const updatedData = [...prevData, newDataPoint];
+
+                    // Truncate the array if it exceeds the number of points
                     if (updatedData.length > config.numPoints) {
-                        updatedData.shift();
+                        return updatedData.slice(-config.numPoints);
                     }
                     return updatedData;
                 });
@@ -74,9 +76,6 @@ function App() {
             }
             if (newConfig.channel !== undefined) {
                 socketRef.current.send(JSON.stringify({ channel: newConfig.channel }));
-            }
-            if (newConfig.offset !== undefined) {
-                socketRef.current.send(JSON.stringify({ offset: newConfig.offset }));
             }
         }
     };
