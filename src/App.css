@@ -1,38 +1,52 @@
-.App {
-  text-align: center;
+body, html, #root, .App {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #2e2e2e; /* Dark gray background */
+    color: #f0f0f0; /* Light gray text color */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Sidebar styling */
+.sidebar {
+    background-color: #3b3b3b; /* Darker gray for the sidebar */
+    padding: 20px;
+    width: 20%;
+    color: #f0f0f0; /* Light text color */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Chart container */
+.chart-container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #2e2e2e; /* Match the main background */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* Ensures the chart takes up all available space */
+.chart-container > div {
+    width: 100%;
+    height: 90%;
 }
 
-.App-link {
-  color: #61dafb;
+/* Override any white backgrounds */
+.recharts-tooltip-wrapper {
+    background-color: #3b3b3b !important; /* Dark tooltip */
+    border-color: #555 !important; /* Darker border for tooltip */
+    color: #f0f0f0 !important; /* Light text color */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.recharts-cartesian-axis-tick text {
+    fill: #f0f0f0 !important; /* Ensure axis text is light */
+}
+
+.recharts-line {
+    stroke: #ff6347 !important; /* Ensure line is vibrant */
+}
+
+.recharts-cartesian-grid line {
+    stroke: #444 !important; /* Subtle grid lines */
 }
