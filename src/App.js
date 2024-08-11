@@ -10,6 +10,8 @@ function App() {
   const [yMin, setYMin] = useState(-1);
   const [yMax, setYMax] = useState(1);
   const [points, setPoints] = useState(100);
+  const [samplingRate, setSamplingRate] = useState(1); // New state for client-side sampling
+  const sampleCounter = useRef(0); // Counter to track how many samples have been skipped
 
   const addData = (chart, label, newData) => {
     chart.data.labels.push(label);
@@ -35,11 +37,15 @@ function App() {
       let { n, signal } = JSON.parse(event.data);
       signal = signal + offset;  // Apply offset to the signal
 
-      if (chartInstance.data.labels.length >= points) {
-        removeData(chartInstance);  // Remove oldest data when max points reached
-      }
+      sampleCounter.current++;
+      if (sampleCounter.current >= samplingRate) {
+        if (chartInstance.data.labels.length >= points) {
+          removeData(chartInstance);  // Remove oldest data when max points reached
+        }
 
-      addData(chartInstance, n, signal);  // Add new data point
+        addData(chartInstance, n, signal);  // Add new data point
+        sampleCounter.current = 0; // Reset the counter after plotting
+      }
     };
 
     ws.onclose = () => {
@@ -49,7 +55,7 @@ function App() {
     return () => {
       ws.close();
     };
-  }, [offset, points]);
+  }, [offset, points, samplingRate]);
 
   const data = {
     labels: [],
@@ -121,6 +127,18 @@ function App() {
               value={points}
               onChange={(e) => setPoints(Number(e.target.value))}
               style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Sampling Rate (1 = Max):
+            <input
+              type="number"
+              value={samplingRate}
+              onChange={(e) => setSamplingRate(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+              min="1"
             />
           </label>
         </div>
