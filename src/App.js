@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
+import Algebrite from 'algebrite'; // Import Algebrite
 import './App.css';
 import './darkMode.css';
 import { DarkModeToggle } from './DarkModeToggle';
@@ -19,9 +20,11 @@ function App() {
   const [isLocked, setIsLocked] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedData, setRecordedData] = useState([]);
+  const [formula, setFormula] = useState('x'); // Add state to hold the formula
 
   const sampleCounter = useRef(0);
 
+  // Effect to handle Dark Mode
   useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark');
@@ -58,6 +61,29 @@ function App() {
     }
   }, [points]);
 
+  // Function to apply the formula to the signal
+  const applyFormula = (signal, formula) => {
+    try {
+      console.log(`Expression ${formula}`);
+      // Simplify the formula expression first
+      const simplifiedExpression = Algebrite.simplify(formula).toString();
+      console.log(`Simplified Expression: ${simplifiedExpression}`);
+
+      // Substitute the signal value into the expression
+      const substitutedExpression = simplifiedExpression.replace(/x/g, `(${signal})`);
+      console.log(`Substituted Expression: ${substitutedExpression}`);
+
+      // Evaluate the expression to get a numeric result
+      const numericResult = Algebrite.run(`float(${substitutedExpression})`).toString();
+      console.log(`Numeric Result: ${numericResult}`);
+
+      return parseFloat(numericResult);
+    } catch (error) {
+      console.error('Error applying formula:', error);
+      return signal; // Fallback to original signal if there's an error
+    }
+  };
+
   const handleRecordToggle = () => {
     if (isRecording) {
       // Save data as JSON
@@ -75,6 +101,7 @@ function App() {
     setIsRecording(!isRecording);
   };
 
+  // WebSocket handling
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
 
@@ -83,16 +110,19 @@ function App() {
         let { n, signal } = JSON.parse(event.data);
         signal = signal + offset;
 
+        // Apply the formula to the signal
+        const calculatedSignal = applyFormula(signal, formula);
+
         sampleCounter.current++;
         if (sampleCounter.current >= samplingRate) {
           if (chartRef.current.data.labels.length >= points) {
             removeData(chartRef.current);
           }
 
-          addData(chartRef.current, n, signal);
+          addData(chartRef.current, n, calculatedSignal);
 
           if (isRecording) {
-            setRecordedData((prevData) => [...prevData, { sample: n, voltage: signal }]);
+            setRecordedData((prevData) => [...prevData, { sample: n, voltage: calculatedSignal }]);
           }
 
           sampleCounter.current = 0;
@@ -107,7 +137,7 @@ function App() {
     return () => {
       ws.close();
     };
-  }, [isLocked, offset, points, samplingRate, isRecording]);
+  }, [isLocked, offset, points, samplingRate, isRecording, formula]);
 
   const handleChannelChange = async (event) => {
     const selectedChannel = parseInt(event.target.value, 10);
@@ -235,6 +265,17 @@ function App() {
               <option value="2">ch2</option>
               <option value="3">ch3</option>
             </select>
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Formula (y = ...):
+            <input
+              type="text"
+              value={formula}
+              onChange={(e) => setFormula(e.target.value)}
+              style={{ marginLeft: '10px' }}
+            />
           </label>
         </div>
       </div>
