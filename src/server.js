@@ -1,61 +1,56 @@
 const express = require('express');
-const http = require('http');
 const WebSocket = require('ws');
-const config = require('config');
-const { generateFunction } = require('./signalGenerator');
-
-// Access configuration values
-const port = config.get('server.port');
-let samplingRate = config.get('server.samplingRate');
-let channel = 0; // Default to channel 0 (sine wave)
-let offset = 0; // Default offset
-
-console.log(`Server will run on port ${port} with a default sampling rate of ${samplingRate} Hz`);
+const { generateFunction } = require('./signalGenerator'); 
 
 const app = express();
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpPort = 8080; // HTTP port
+const wsPort = 8081; // WebSocket port
+const samplingRate = 10; // Adjust this based on your needs
+const offset = 0; // Offset value, can be adjusted or set dynamically
+
+let currentChannel = 0; // Default channel
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// POST endpoint to change the channel
+app.post('/set-channel', (req, res) => {
+    const { channel } = req.body;
+    if (channel >= 0 && channel <= 3) {
+        currentChannel = channel;
+        res.status(200).send(`Channel set to ${channel}`);
+    } else {
+        res.status(400).send('Invalid channel');
+    }
+});
+
+// Start HTTP server 
+app.listen(httpPort, () => {
+    console.log(`HTTP server running on http://localhost:${httpPort}`);
+});
+
+
+// Set up websocket connection for data transmission
+const wss = new WebSocket.Server({ port: wsPort });
 
 wss.on('connection', (ws) => {
-    console.log('Client connected');
+    console.log('WebSocket client connected');
 
-    const sendData = () => {
-        let x = 0;
-        const intervalId = setInterval(() => {
-            const data = {
-                name: `Point ${x}`,
-                deltaT: x / samplingRate,
-                value: generateFunction(x, channel, offset) // Pass the offset to the function
-            };
-            ws.send(JSON.stringify(data));
-            x += 1;
-        }, 1000 / samplingRate);
+    let n = 0;
 
-        ws.on('close', () => {
-            clearInterval(intervalId);
-            console.log('Client disconnected');
-        });
+    const sendSignal = () => {
+        const signal = generateFunction(n, currentChannel, offset, samplingRate);
+        ws.send(JSON.stringify({ n, signal }));
+        n++;
     };
 
-    sendData();
+    // Stream data at the given sampling rate
+    const interval = setInterval(sendSignal, 1000 / samplingRate);
 
-    ws.on('message', (message) => {
-        const parsedMessage = JSON.parse(message);
-        if (parsedMessage.samplingRate) {
-            samplingRate = parsedMessage.samplingRate;
-            console.log(`Sampling rate updated to ${samplingRate} Hz`);
-        }
-        if (parsedMessage.channel !== undefined) {
-            channel = parsedMessage.channel;
-            console.log(`Channel updated to ${channel}`);
-                    }
-        if (parsedMessage.offset !== undefined) {
-            offset = parsedMessage.offset;
-            console.log(`Offset updated to ${offset}`);
-        }
+    ws.on('close', () => {
+        console.log('WebSocket client disconnected');
+        clearInterval(interval);
     });
 });
 
-server.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-});
+console.log(`WebSocket server started on ws://localhost:${wsPort}`);

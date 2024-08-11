@@ -1,99 +1,136 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Sidebar from './Sidebar';
-import Chart from './Chart';
+import { Line } from 'react-chartjs-2';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 function App() {
-    const [config, setConfig] = useState(null);
-    const [data, setData] = useState([]);
-    const socketRef = useRef(null);
+  const chartRef = useRef(null);  // Reference to the chart instance
+  const [offset, setOffset] = useState(0);
+  const [yMin, setYMin] = useState(-1);
+  const [yMax, setYMax] = useState(1);
+  const [points, setPoints] = useState(100);
 
-    useEffect(() => {
-        // Fetch the initial configuration from default.json
-        fetch('/config/default.json')
-            .then((response) => response.json())
-            .then((configData) => {
-                setConfig(configData);  // Set config state with loaded data
-            })
-            .catch((error) => {
-                console.error('Error loading config:', error);
-            });
-    }, []);
+  const addData = (chart, label, newData) => {
+    chart.data.labels.push(label);
+    chart.data.datasets.forEach((dataset) => {
+      dataset.data.push(newData);
+    });
+    chart.update();
+  };
 
-    useEffect(() => {
-        if (config) {
-            // Initialize WebSocket connection once config is loaded
-            socketRef.current = new WebSocket(`ws://${config.server.host}:${config.server.port}/`);
+  const removeData = (chart) => {
+    chart.data.labels.shift();  // Remove the oldest label
+    chart.data.datasets.forEach((dataset) => {
+      dataset.data.shift();  // Remove the oldest data point
+    });
+    chart.update();
+  };
 
-            socketRef.current.onopen = () => {
-                console.log('WebSocket connection established');
-                // Send the initial sampling rate
-                socketRef.current.send(JSON.stringify({ samplingRate: config.server.samplingRate }));
-            };
+  useEffect(() => {
+    const chartInstance = chartRef.current;  // Get the chart instance
+    const ws = new WebSocket('ws://localhost:8081');
 
-            socketRef.current.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                setData((prevData) => {
-                    const newDataPoint = {
-                        name: message.name,
-                        deltaT: message.deltaT,
-                        value: message.value,
-                    };
-                    const updatedData = [...prevData, newDataPoint];
+    ws.onmessage = (event) => {
+      let { n, signal } = JSON.parse(event.data);
+      signal = signal + offset;  // Apply offset to the signal
 
-                    // Truncate the array if it exceeds the number of points
-                    if (updatedData.length > config.numPoints) {
-                        return updatedData.slice(-config.numPoints);
-                    }
-                    return updatedData;
-                });
-            };
+      if (chartInstance.data.labels.length >= points) {
+        removeData(chartInstance);  // Remove oldest data when max points reached
+      }
 
-            socketRef.current.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
-
-            socketRef.current.onclose = () => {
-                console.log('WebSocket connection closed');
-            };
-
-            // Cleanup WebSocket on component unmount
-            return () => {
-                socketRef.current.close();
-            };
-        }
-    }, [config]);
-
-    // Handle changes from Sidebar
-    const handleConfigChange = (newConfig) => {
-        setConfig((prevConfig) => ({
-            ...prevConfig,
-            ...newConfig,
-        }));
-
-        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-            if (newConfig.samplingRate !== undefined) {
-                socketRef.current.send(JSON.stringify({ samplingRate: newConfig.samplingRate }));
-            }
-            if (newConfig.channel !== undefined) {
-                socketRef.current.send(JSON.stringify({ channel: newConfig.channel }));
-            }
-        }
+      addData(chartInstance, n, signal);  // Add new data point
     };
 
-    if (!config) {
-        return <div>Loading...</div>;  // Show a loading state until config is ready
-    }
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
 
-    return (
-        <div style={{ display: 'flex', height: '100vh', width: '100vw' }}>
-            <Sidebar onChange={handleConfigChange} />
-            <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: '100%', height: '90%' }}>
-                    <Chart data={data} yAxisRange={config.yAxisRange} />
-                </div>
-            </div>
+    return () => {
+      ws.close();
+    };
+  }, [offset, points]);
+
+  const data = {
+    labels: [],
+    datasets: [
+      {
+        label: 'Signal',
+        data: [],
+        borderColor: 'rgba(75,192,192,1)',
+        borderWidth: 2,
+        fill: false,
+      },
+    ],
+  };
+
+  const options = {
+    scales: {
+      y: {
+        min: yMin,
+        max: yMax,
+        ticks: {
+          stepSize: 0.5,
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="App" style={{ display: 'flex' }}>
+      <div style={{ width: '20%', padding: '10px', borderRight: '1px solid #ccc' }}>
+        <h2>Controls</h2>
+        <div>
+          <label>
+            Offset:
+            <input
+              type="number"
+              value={offset}
+              onChange={(e) => setOffset(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
         </div>
-    );
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Y-Axis Min:
+            <input
+              type="number"
+              value={yMin}
+              onChange={(e) => setYMin(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '10px' }}>
+          <label>
+            Y-Axis Max:
+            <input
+              type="number"
+              value={yMax}
+              onChange={(e) => setYMax(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            X-Axis Points:
+            <input
+              type="number"
+              value={points}
+              onChange={(e) => setPoints(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+      </div>
+      <div style={{ width: '80%', padding: '10px' }}>
+        <h1>Real-Time Signal Plotter</h1>
+        <Line ref={chartRef} data={data} options={options} />
+      </div>
+    </div>
+  );
 }
 
 export default App;
