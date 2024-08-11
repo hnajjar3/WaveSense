@@ -1,180 +1,165 @@
-Certainly! Here's a template for a detailed `README.md` document. You can adjust the content according to your specific project details.
+# WaveSense React JS
 
----
+WaveSense React JS is a real-time signal plotting application built with React and Chart.js. It allows users to visualize and interact with data streams in real-time, including features like dark mode, data recording, and dynamic axis scaling.
 
-# WaveSense React
+## Table of Contents
 
-## Overview
-
-WaveSense React is a web-based smart oscilloscope application built using React, Express, and WebSocket. The application allows users to visualize real-time signals and select different waveform channels (sine, square, triangular, sawtooth) through an interactive interface. The server generates and streams the signal data to the client, which is displayed using Recharts.
+- [Features](#features)
+- [Demo](#demo)
+- [Installation](#installation)
+- [Usage](#usage)
+- [WebSocket Server](#websocket-server)
+- [Available Scripts](#available-scripts)
+- [App Structure](#app-structure)
+- [Customization](#customization)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- **Real-Time Signal Visualization:** Display live data on an interactive chart.
-- **Channel Selection:** Choose from four different signal types: Sine, Square, Triangular, and Sawtooth.
-- **Client-Side Control:** Adjust the signal offset and sampling rate from the client interface.
-- **WebSocket Communication:** Stream data in real-time from the server to the client using WebSocket.
-- **Single Port Serving:** Serve both the client application and WebSocket communication on the same port to avoid CORS issues.
+- **Real-Time Plotting:** Visualize live data streams with a customizable number of data points.
+- **Dark Mode:** Toggle between light and dark themes for better visibility.
+- **Data Recording:** Record incoming data and save it as a JSON file.
+- **Dynamic Axis Scaling:** Adjust the y-axis range and the number of x-axis points dynamically.
+- **Channel Selection:** Choose between different data channels.
+- **Screen Lock:** Freeze the chart to pause live updates without stopping the application.
 
-## Directory Structure
+## Demo
 
-```plaintext
-wavesense-react/
-├── build/                       # Production build directory
-├── public/                      # Public assets
-│   ├── config/                  # Configuration files
-│   │   └── default.json
-│   ├── favicon.ico
-│   ├── index.html               # Entry point for the React app
-│   ├── logo192.png
-│   ├── logo512.png
-│   ├── manifest.json
-│   └── robots.txt
-├── src/                         # Source files
-│   ├── App.css
-│   ├── App.js                   # Main React component
-│   ├── App.test.js
-│   ├── Chart.js                 # Chart component for displaying signals
-│   ├── Sidebar.js               # Sidebar component for controls
-│   ├── Toggle.js                # Dark mode toggle component
-│   ├── darkMode.css
-│   ├── functionGenerator.js      # Signal generation functions
-│   ├── index.css
-│   ├── index.js                 # Main entry point
-│   ├── logo.svg
-│   ├── reportWebVitals.js
-│   ├── server.js                # Express server and WebSocket setup
-│   ├── setupTests.js
-│   └── signalGenerator.js       # Signal generation logic for WebSocket
-├── package.json                 # Project dependencies and scripts
-├── package-lock.json
-└── README.md                    # Project documentation
-```
+![WaveSense React JS Screenshot](screenshot.png)  
+*Screenshot of the application in action.*
 
 ## Installation
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (version 14.x or higher)
-- [npm](https://www.npmjs.com/) (version 6.x or higher)
-
-### Setup
+To get started with WaveSense React JS, follow these steps:
 
 1. **Clone the repository:**
-
    ```bash
-   git clone https://github.com/your-username/wavesense-react.git
+   git clone https://github.com/yourusername/wavesense-react.git
    cd wavesense-react
    ```
 
 2. **Install dependencies:**
-
    ```bash
    npm install
    ```
 
-3. **Build the React app:**
+3. **Start the WebSocket server:**  
+   Ensure you have a WebSocket server running that streams data in the expected format. Instructions for setting up a simple server are provided below.
 
+4. **Run the development server:**
    ```bash
-   npm run build
+   npm start
    ```
-
-4. **Run the server:**
-
-   ```bash
-   node src/server.js
-   ```
-
-5. **Access the application:**
-
-   Open your browser and navigate to `http://localhost:8080`.
 
 ## Usage
 
-### Channel Selection
+Once the application is running, you can interact with the various controls available in the sidebar:
 
-- Use the dropdown menu in the sidebar to select between different waveform channels:
-  - **Sine Wave (ch0)**
-  - **Square Wave (ch1)**
-  - **Triangular Wave (ch2)**
-  - **Sawtooth Wave (ch3)**
+- **Dark Mode Toggle:** Switch between light and dark themes.
+- **Record Data:** Start recording incoming data; click again to save the data as a JSON file.
+- **Offset:** Adjust the signal offset value.
+- **Y-Axis Min/Max:** Set the minimum and maximum values for the y-axis.
+- **X-Axis Points:** Define the number of data points to display on the x-axis.
+- **Sampling Rate:** Control the rate at which data points are sampled (1 = max rate).
+- **Channel Selection:** Choose between available data channels (ch0, ch1, ch2, ch3).
+- **Lock/Unlock Screen:** Freeze the chart to pause updates, then unlock to resume.
 
-### Adjusting Signal Parameters
+## WebSocket Server
 
-- **Offset:** Modify the signal offset using the provided input field in the sidebar.
-- **Sampling Rate:** Control the sampling rate of the signal data displayed on the chart.
-
-### Real-Time Data Streaming
-
-- The server continuously streams signal data to the client using WebSocket. The data is visualized on the chart in real-time.
-
-## Development
-
-### Running the Development Server
-
-To run the React development server on port 8080:
-
-```bash
-npm start
-```
-
-This command uses `react-scripts` to start the development server. The app will automatically reload if you make changes to any of the source files.
-
-### WebSocket Server
-
-The WebSocket server is integrated into the Express server and runs on the same port (8080) to avoid CORS issues. It streams signal data to the client in real-time.
-
-## Configuration
-
-The application uses a configuration file located at `public/config/default.json` for setting default values like the sampling rate.
-
-### Example Configuration (`default.json`)
+WaveSense React JS requires a WebSocket server that streams JSON data in the following format:
 
 ```json
 {
-  "server": {
-    "host": "0.0.0.0",
-    "port": 8080,
-    "samplingRate": 10
-  },
-  "signals": {
-    "minMaxValues": {
-      "0": { "min": -1, "max": 1 },
-      "1": { "min": -1, "max": 1 },
-      "2": { "min": -1, "max": 1 },
-      "3": { "min": -1, "max": 1 }
-    }
-  }
+  "n": 0,
+  "signal": 0.5877852522924731
 }
 ```
 
-## Troubleshooting
+The `n` value represents the sample number, and `signal` is the corresponding voltage or data value.
 
-### Common Issues
+### Example WebSocket Server
 
-- **Port Conflicts:** Ensure no other service is running on port 8080.
-- **Missing Dependencies:** If you encounter issues during the build process, try running `npm install` to ensure all dependencies are installed.
-- **CORS Errors:** CORS issues have been avoided by serving the client and server on the same port. If you encounter CORS-related errors, ensure that both the client and server are properly configured.
+Below is a basic Node.js WebSocket server that you can use to test the application:
 
-### Logs
+```javascript
+const WebSocket = require('ws');
 
-Check the server logs in the terminal for any error messages or status updates when running the application.
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', ws => {
+  console.log('Client connected');
+
+  let n = 0;
+  setInterval(() => {
+    const signal = Math.sin(n / 10); // Example signal
+    ws.send(JSON.stringify({ n, signal }));
+    n++;
+  }, 100);
+
+  ws.on('close', () => console.log('Client disconnected'));
+});
+
+console.log('WebSocket server running on ws://localhost:8080');
+```
+
+Save this code in a file called `server.js` and run it using Node.js:
+
+```bash
+node server.js
+```
+
+## Available Scripts
+
+In the project directory, you can run:
+
+- `npm start`: Runs the app in the development mode.
+- `npm run build`: Builds the app for production.
+- `npm run lint`: Lints the code for potential issues.
+- `npm run test`: Launches the test runner.
+
+## App Structure
+
+```
+wavesense-react/
+│
+├── public/                     # Static assets
+│   ├── index.html              # Main HTML file
+│   └── ...
+│
+├── src/                        # Source files
+│   ├── App.js                  # Main app component
+│   ├── App.css                 # Global styles
+│   ├── darkMode.css            # Dark mode styles
+│   ├── DarkModeToggle.js       # Dark mode toggle component
+│   ├── recordingWorker.js      # Web worker for recording data
+│   └── ...
+│
+├── package.json                # Project metadata and dependencies
+└── README.md                   # Project documentation
+```
+
+## Customization
+
+### Modifying Styles
+
+You can customize the look and feel of the application by editing the `App.css` and `darkMode.css` files. These files control the global styles and the dark mode theme, respectively.
+
+### Adding New Features
+
+Feel free to fork the repository and add new features as needed. Contributions are welcome!
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
+If you'd like to contribute to WaveSense React JS, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature/your-feature-name`.
+3. Make your changes.
+4. Commit your changes: `git commit -m 'Add some feature'`.
+5. Push to the branch: `git push origin feature/your-feature-name`.
+6. Open a pull request.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [React](https://reactjs.org/)
-- [Express](https://expressjs.com/)
-- [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
-- [Recharts](https://recharts.org/)
-
----
-
-This `README.md` document provides a comprehensive guide to setting up, using, and developing the WaveSense React application. Feel free to customize any part of this template to better fit your project's needs. Let me know if you need further assistance!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
