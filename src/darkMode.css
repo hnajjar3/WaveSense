@@ -1,0 +1,57 @@
+body {
+  --color-background: #fafafa;
+  --color-foreground: #1f2023;
+}
+
+body.dark {
+  --color-background: #1f2023;
+  --color-foreground: #efefef;
+}
+
+/* Apply the variables */
+body, html, #root, .App {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--color-background); /* Use variable */
+  color: var(--color-foreground); /* Use variable */
+}
+
+/* Sidebar styling */
+.sidebar {
+  background-color: var(--color-background); /* Use variable */
+  padding: 5px;
+  width: 20%;
+  color: var(--color-foreground); /* Use variable */
+}
+
+/* Chart container */
+.chart-container {
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background); /* Use variable */
+}
+
+/* Recharts styles */
+.recharts-tooltip-wrapper {
+  background-color: var(--color-background) !important;
+  border-color: var(--color-foreground) !important;
+  color: var(--color-foreground) !important;
+}
+
+.recharts-cartesian-axis-tick text {
+  fill: var(--color-foreground) !important;
+}
+
+.recharts-line {
+  stroke: #ff6347 !important; /* Maintain vibrant line color */
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--color-foreground) !important;
+}

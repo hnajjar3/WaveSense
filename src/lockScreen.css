@@ -1,0 +1,30 @@
+.lock-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Dark semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it covers everything else */
+}
+
+.lock-screen-content {
+    text-align: center;
+    color: #fff;
+}
+
+.lock-screen button {
+    padding: 10px 20px;
+    margin-top: 20px;
+    background-color: #ff6347;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.lock-screen button:hover {
+    background-color: #e55337;
+}

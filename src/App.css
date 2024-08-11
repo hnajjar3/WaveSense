@@ -4,7 +4,7 @@ body, html, #root, .App {
     height: 100%;
     width: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Set flex direction to row for side-by-side layout */
     background-color: #2e2e2e; /* Dark gray background */
     color: #f0f0f0; /* Light gray text color */
 }
@@ -12,14 +12,14 @@ body, html, #root, .App {
 /* Sidebar styling */
 .sidebar {
     background-color: #3b3b3b; /* Darker gray for the sidebar */
-    padding: 20px;
-    width: 10%;
+    padding: 5px;
+    width: 20%; /* Increase width to allow more space for content */
     color: #f0f0f0; /* Light text color */
 }
 
 /* Chart container */
 .chart-container {
-    width: 80%;
+    width: 80%; /* Take up the remaining space */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,9 +28,8 @@ body, html, #root, .App {
 
 /* Ensures the chart takes up all available space */
 .chart-container > div {
-    width: 80%;
-    height: 80%;
-    /*padding: 20px;*/
+    width: 100%; /* Ensure full width of container */
+    height: 100%; /* Ensure full height of container */
 }
 
 /* Override any white backgrounds */

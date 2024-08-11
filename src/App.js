@@ -1,19 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
+import './App.css';
+import './darkMode.css';
+import { DarkModeToggle } from './DarkModeToggle';
 
 Chart.register(...registerables);
 
 function App() {
-  const chartRef = useRef(null);  // Reference to the chart instance
+  const chartRef = useRef(null);
   const [offset, setOffset] = useState(0);
   const [yMin, setYMin] = useState(-1);
   const [yMax, setYMax] = useState(1);
   const [points, setPoints] = useState(100);
-  const [samplingRate, setSamplingRate] = useState(1); // New state for client-side sampling
-  const [channel, setChannel] = useState(0); // New state for channel control
+  const [samplingRate, setSamplingRate] = useState(1);
+  const [channel, setChannel] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedData, setRecordedData] = useState([]);
 
-  const sampleCounter = useRef(0); // Counter to track how many samples have been skipped
+  const sampleCounter = useRef(0);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark');
+      document.body.classList.remove('light');
+    } else {
+      document.body.classList.add('light');
+      document.body.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const addData = (chart, label, newData) => {
     chart.data.labels.push(label);
@@ -24,29 +41,62 @@ function App() {
   };
 
   const removeData = (chart) => {
-    chart.data.labels.shift();  // Remove the oldest label
+    chart.data.labels.shift();
     chart.data.datasets.forEach((dataset) => {
-      dataset.data.shift();  // Remove the oldest data point
+      dataset.data.shift();
     });
     chart.update();
   };
 
+  // Ensure that when points is reduced, excess data is removed
   useEffect(() => {
-    const chartInstance = chartRef.current;  // Get the chart instance
+    const chart = chartRef.current;
+    if (chart) {
+      while (chart.data.labels.length > points) {
+        removeData(chart);
+      }
+    }
+  }, [points]);
+
+  const handleRecordToggle = () => {
+    if (isRecording) {
+      // Save data as JSON
+      const date = new Date();
+      const filename = `wavesense_react_voltage_data_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}_${date.getHours()}:${date.getMinutes()}.json`;
+      const blob = new Blob([JSON.stringify(recordedData)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+
+      // Clear recorded data after saving
+      setRecordedData([]);
+    }
+    setIsRecording(!isRecording);
+  };
+
+  useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
 
     ws.onmessage = (event) => {
-      let { n, signal } = JSON.parse(event.data);
-      signal = signal + offset;  // Apply offset to the signal
+      if (!isLocked) {  // Only update the chart if it is not locked
+        let { n, signal } = JSON.parse(event.data);
+        signal = signal + offset;
 
-      sampleCounter.current++;
-      if (sampleCounter.current >= samplingRate) {
-        if (chartInstance.data.labels.length >= points) {
-          removeData(chartInstance);  // Remove oldest data when max points reached
+        sampleCounter.current++;
+        if (sampleCounter.current >= samplingRate) {
+          if (chartRef.current.data.labels.length >= points) {
+            removeData(chartRef.current);
+          }
+
+          addData(chartRef.current, n, signal);
+
+          if (isRecording) {
+            setRecordedData((prevData) => [...prevData, { sample: n, voltage: signal }]);
+          }
+
+          sampleCounter.current = 0;
         }
-
-        addData(chartInstance, n, signal);  // Add new data point
-        sampleCounter.current = 0; // Reset the counter after plotting
       }
     };
 
@@ -57,34 +107,34 @@ function App() {
     return () => {
       ws.close();
     };
-  }, [offset, points, samplingRate]);
+  }, [isLocked, offset, points, samplingRate, isRecording]);
 
-const handleChannelChange = async (event) => {
+  const handleChannelChange = async (event) => {
     const selectedChannel = parseInt(event.target.value, 10);
     setChannel(selectedChannel);
 
     try {
-        const response = await fetch('http://localhost:8080/set-channel', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ channel: selectedChannel }),
-        });
+      const response = await fetch('http://localhost:8080/set-channel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ channel: selectedChannel }),
+      });
 
-        const result = await response.text();
-        console.log(result); // Log the server response
+      const result = await response.text();
+      console.log(result);
     } catch (error) {
-        console.error('Error setting channel:', error);
+      console.error('Error setting channel:', error);
     }
-};
+  };
 
   const data = {
-    labels: [],
+    labels: chartRef.current?.data.labels || [],  // Start with current labels if available
     datasets: [
       {
         label: 'Signal',
-        data: [],
+        data: chartRef.current?.data.datasets[0]?.data || [],  // Start with current data if available
         borderColor: 'rgba(75,192,192,1)',
         borderWidth: 2,
         fill: false,
@@ -108,12 +158,24 @@ const handleChannelChange = async (event) => {
     <div className="App" style={{ display: 'flex' }}>
       <div style={{ width: '20%', padding: '10px', borderRight: '1px solid #ccc' }}>
         <h2>Controls</h2>
+        <DarkModeToggle />
+        <div>
+          <button onClick={() => setIsLocked(!isLocked)}>
+            {isLocked ? 'Unlock Screen' : 'Lock Screen'}
+          </button>
+        </div>
+        <div>
+          <button onClick={handleRecordToggle}>
+            {isRecording ? 'Save Data' : 'Record Data'}
+          </button>
+        </div>
         <div>
           <label>
             Offset:
             <input
               type="number"
               value={offset}
+              step="0.1"
               onChange={(e) => setOffset(Number(e.target.value))}
               style={{ marginLeft: '10px' }}
             />
@@ -177,7 +239,7 @@ const handleChannelChange = async (event) => {
         </div>
       </div>
       <div style={{ width: '80%', padding: '10px' }}>
-        <h1>Real-Time Signal Plotter</h1>
+        <h1>WaveSense React JS</h1>
         <Line ref={chartRef} data={data} options={options} />
       </div>
     </div>

@@ -13,16 +13,17 @@ const generateFunction = (n, channel, offset = 0, samplingRate = 10) => {
     const t_n = n * dt;
     const { min, max } = minMaxValues[channel] || { min: -1, max: 1 };
     const period = 1 / f0;
+    noise = (Math.random()-0.5)*0.1
 
     switch (channel) {
         case 1: // Sawtooth
-            return g.sawtoothWave(t_n, min, max, period) + offset;
+            return g.sawtoothWave(t_n, min, max, period) + offset + noise;
         case 2: // Triangular
-            return g.triangleWave(t_n, min, max, period) + offset;
+            return g.triangleWave(t_n, min, max, period) + offset + noise;
         case 3: // Rectangular with 50% duty cycle
-            return g.squareWave(t_n, min, max, period) + offset;
+            return g.squareWave(t_n, min, max, period) + offset + noise;
         default: // Sine
-            return g.sineWave(t_n, min, max, period) + offset;
+            return g.sineWave(t_n, min, max, period) + offset + noise;
     }
 };
 
