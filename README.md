@@ -1,70 +1,180 @@
-# Getting Started with Create React App
+Certainly! Here's a template for a detailed `README.md` document. You can adjust the content according to your specific project details.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+---
 
-## Available Scripts
+# WaveSense React
 
-In the project directory, you can run:
+## Overview
 
-### `npm start`
+WaveSense React is a web-based smart oscilloscope application built using React, Express, and WebSocket. The application allows users to visualize real-time signals and select different waveform channels (sine, square, triangular, sawtooth) through an interactive interface. The server generates and streams the signal data to the client, which is displayed using Recharts.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Real-Time Signal Visualization:** Display live data on an interactive chart.
+- **Channel Selection:** Choose from four different signal types: Sine, Square, Triangular, and Sawtooth.
+- **Client-Side Control:** Adjust the signal offset and sampling rate from the client interface.
+- **WebSocket Communication:** Stream data in real-time from the server to the client using WebSocket.
+- **Single Port Serving:** Serve both the client application and WebSocket communication on the same port to avoid CORS issues.
 
-### `npm test`
+## Directory Structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```plaintext
+wavesense-react/
+├── build/                       # Production build directory
+├── public/                      # Public assets
+│   ├── config/                  # Configuration files
+│   │   └── default.json
+│   ├── favicon.ico
+│   ├── index.html               # Entry point for the React app
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
+├── src/                         # Source files
+│   ├── App.css
+│   ├── App.js                   # Main React component
+│   ├── App.test.js
+│   ├── Chart.js                 # Chart component for displaying signals
+│   ├── Sidebar.js               # Sidebar component for controls
+│   ├── Toggle.js                # Dark mode toggle component
+│   ├── darkMode.css
+│   ├── functionGenerator.js      # Signal generation functions
+│   ├── index.css
+│   ├── index.js                 # Main entry point
+│   ├── logo.svg
+│   ├── reportWebVitals.js
+│   ├── server.js                # Express server and WebSocket setup
+│   ├── setupTests.js
+│   └── signalGenerator.js       # Signal generation logic for WebSocket
+├── package.json                 # Project dependencies and scripts
+├── package-lock.json
+└── README.md                    # Project documentation
+```
 
-### `npm run build`
+## Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- [Node.js](https://nodejs.org/) (version 14.x or higher)
+- [npm](https://www.npmjs.com/) (version 6.x or higher)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Setup
 
-### `npm run eject`
+1. **Clone the repository:**
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+   ```bash
+   git clone https://github.com/your-username/wavesense-react.git
+   cd wavesense-react
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. **Install dependencies:**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+   ```bash
+   npm install
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Build the React app:**
 
-## Learn More
+   ```bash
+   npm run build
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+4. **Run the server:**
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+   ```bash
+   node src/server.js
+   ```
 
-### Code Splitting
+5. **Access the application:**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   Open your browser and navigate to `http://localhost:8080`.
 
-### Analyzing the Bundle Size
+## Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Channel Selection
 
-### Making a Progressive Web App
+- Use the dropdown menu in the sidebar to select between different waveform channels:
+  - **Sine Wave (ch0)**
+  - **Square Wave (ch1)**
+  - **Triangular Wave (ch2)**
+  - **Sawtooth Wave (ch3)**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Adjusting Signal Parameters
 
-### Advanced Configuration
+- **Offset:** Modify the signal offset using the provided input field in the sidebar.
+- **Sampling Rate:** Control the sampling rate of the signal data displayed on the chart.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Real-Time Data Streaming
 
-### Deployment
+- The server continuously streams signal data to the client using WebSocket. The data is visualized on the chart in real-time.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Development
 
-### `npm run build` fails to minify
+### Running the Development Server
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+To run the React development server on port 8080:
+
+```bash
+npm start
+```
+
+This command uses `react-scripts` to start the development server. The app will automatically reload if you make changes to any of the source files.
+
+### WebSocket Server
+
+The WebSocket server is integrated into the Express server and runs on the same port (8080) to avoid CORS issues. It streams signal data to the client in real-time.
+
+## Configuration
+
+The application uses a configuration file located at `public/config/default.json` for setting default values like the sampling rate.
+
+### Example Configuration (`default.json`)
+
+```json
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "samplingRate": 10
+  },
+  "signals": {
+    "minMaxValues": {
+      "0": { "min": -1, "max": 1 },
+      "1": { "min": -1, "max": 1 },
+      "2": { "min": -1, "max": 1 },
+      "3": { "min": -1, "max": 1 }
+    }
+  }
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+- **Port Conflicts:** Ensure no other service is running on port 8080.
+- **Missing Dependencies:** If you encounter issues during the build process, try running `npm install` to ensure all dependencies are installed.
+- **CORS Errors:** CORS issues have been avoided by serving the client and server on the same port. If you encounter CORS-related errors, ensure that both the client and server are properly configured.
+
+### Logs
+
+Check the server logs in the terminal for any error messages or status updates when running the application.
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and create a pull request with your changes.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [React](https://reactjs.org/)
+- [Express](https://expressjs.com/)
+- [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+- [Recharts](https://recharts.org/)
+
+---
+
+This `README.md` document provides a comprehensive guide to setting up, using, and developing the WaveSense React application. Feel free to customize any part of this template to better fit your project's needs. Let me know if you need further assistance!

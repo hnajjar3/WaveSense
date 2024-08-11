@@ -11,6 +11,8 @@ function App() {
   const [yMax, setYMax] = useState(1);
   const [points, setPoints] = useState(100);
   const [samplingRate, setSamplingRate] = useState(1); // New state for client-side sampling
+  const [channel, setChannel] = useState(0); // New state for channel control
+
   const sampleCounter = useRef(0); // Counter to track how many samples have been skipped
 
   const addData = (chart, label, newData) => {
@@ -31,7 +33,7 @@ function App() {
 
   useEffect(() => {
     const chartInstance = chartRef.current;  // Get the chart instance
-    const ws = new WebSocket('ws://localhost:8081');
+    const ws = new WebSocket('ws://localhost:8080');
 
     ws.onmessage = (event) => {
       let { n, signal } = JSON.parse(event.data);
@@ -56,6 +58,26 @@ function App() {
       ws.close();
     };
   }, [offset, points, samplingRate]);
+
+const handleChannelChange = async (event) => {
+    const selectedChannel = parseInt(event.target.value, 10);
+    setChannel(selectedChannel);
+
+    try {
+        const response = await fetch('http://localhost:8080/set-channel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ channel: selectedChannel }),
+        });
+
+        const result = await response.text();
+        console.log(result); // Log the server response
+    } catch (error) {
+        console.error('Error setting channel:', error);
+    }
+};
 
   const data = {
     labels: [],
@@ -140,6 +162,17 @@ function App() {
               style={{ marginLeft: '10px' }}
               min="1"
             />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Channel:
+            <select value={channel} onChange={handleChannelChange} style={{ marginLeft: '10px' }}>
+              <option value="0">ch0</option>
+              <option value="1">ch1</option>
+              <option value="2">ch2</option>
+              <option value="3">ch3</option>
+            </select>
           </label>
         </div>
       </div>

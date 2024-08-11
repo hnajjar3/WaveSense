@@ -1,14 +1,17 @@
 const express = require('express');
+const path = require('path');
 const WebSocket = require('ws');
-const { generateFunction } = require('./signalGenerator'); 
+const { generateFunction } = require('./signalGenerator'); // Adjust the path as needed
 
 const app = express();
-const httpPort = 8080; // HTTP port
-const wsPort = 8081; // WebSocket port
-const samplingRate = 10; // Adjust this based on your needs
-const offset = 0; // Offset value, can be adjusted or set dynamically
+const port = 8080; // Single port for both HTTP and WebSocket
+const samplingRate = 10;
+const offset = 0;
 
-let currentChannel = 0; // Default channel
+let currentChannel = 0;
+
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, '../build'))); // Adjusted path
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -18,20 +21,24 @@ app.post('/set-channel', (req, res) => {
     const { channel } = req.body;
     if (channel >= 0 && channel <= 3) {
         currentChannel = channel;
+        console.log(`Channel changed to: ${channel}`);
         res.status(200).send(`Channel set to ${channel}`);
     } else {
         res.status(400).send('Invalid channel');
     }
 });
 
-// Start HTTP server 
-app.listen(httpPort, () => {
-    console.log(`HTTP server running on http://localhost:${httpPort}`);
+// All other routes should serve the React app's index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../build', 'index.html')); // Adjusted path
 });
 
+// Create an HTTP server
+const server = app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
 
-// Set up websocket connection for data transmission
-const wss = new WebSocket.Server({ port: wsPort });
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
@@ -44,7 +51,6 @@ wss.on('connection', (ws) => {
         n++;
     };
 
-    // Stream data at the given sampling rate
     const interval = setInterval(sendSignal, 1000 / samplingRate);
 
     ws.on('close', () => {
@@ -52,5 +58,3 @@ wss.on('connection', (ws) => {
         clearInterval(interval);
     });
 });
-
-console.log(`WebSocket server started on ws://localhost:${wsPort}`);
