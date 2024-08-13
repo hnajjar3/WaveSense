@@ -17,6 +17,11 @@ body, html, #root, .App {
     color: #f0f0f0; /* Light text color */
 }
 
+/* Sidebar styling */
+.sidebar div {
+    margin: 5px;
+}
+
 /* Chart container */
 .chart-container {
     width: 80%; /* Take up the remaining space */

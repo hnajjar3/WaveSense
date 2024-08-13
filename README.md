@@ -1,6 +1,6 @@
 # WaveSense React JS
 
-WaveSense React JS is a real-time signal plotting application built with React and Chart.js. It allows users to visualize and interact with data streams in real-time, including features like dark mode, data recording, and dynamic axis scaling.
+WaveSense React JS is a real-time signal plotting application built with React and Chart.js. It allows users to visualize and interact with data streams in real-time, including features like dark mode, data recording using a web worker, and dynamic axis scaling.
 
 ## Table of Contents
 
@@ -9,6 +9,7 @@ WaveSense React JS is a real-time signal plotting application built with React a
 - [Installation](#installation)
 - [Usage](#usage)
 - [WebSocket Server](#websocket-server)
+- [Web Workers](#web-workers)
 - [Available Scripts](#available-scripts)
 - [App Structure](#app-structure)
 - [Customization](#customization)
@@ -19,7 +20,7 @@ WaveSense React JS is a real-time signal plotting application built with React a
 
 - **Real-Time Plotting:** Visualize live data streams with a customizable number of data points.
 - **Dark Mode:** Toggle between light and dark themes for better visibility.
-- **Data Recording:** Record incoming data and save it as a JSON file.
+- **Data Recording:** Record incoming data using a web worker and save it as a JSON file.
 - **Dynamic Axis Scaling:** Adjust the y-axis range and the number of x-axis points dynamically.
 - **Channel Selection:** Choose between different data channels.
 - **Screen Lock:** Freeze the chart to pause live updates without stopping the application.
@@ -57,7 +58,7 @@ To get started with WaveSense React JS, follow these steps:
 Once the application is running, you can interact with the various controls available in the sidebar:
 
 - **Dark Mode Toggle:** Switch between light and dark themes.
-- **Record Data:** Start recording incoming data; click again to save the data as a JSON file.
+- **Record Data:** Start recording incoming data using a web worker; click again to save the data as a JSON file.
 - **Offset:** Adjust the signal offset value.
 - **Y-Axis Min/Max:** Set the minimum and maximum values for the y-axis.
 - **X-Axis Points:** Define the number of data points to display on the x-axis.
@@ -107,6 +108,56 @@ Save this code in a file called `server.js` and run it using Node.js:
 
 ```bash
 node server.js
+```
+
+## Web Workers
+
+The recording functionality of WaveSense React JS is managed by a web worker to ensure that the data recording process does not block the main thread.
+
+### Example `recordingWorker.js`
+
+```javascript
+/* eslint-disable no-restricted-globals */
+
+let recordedData = [];
+let isRecording = false;
+
+// Handle incoming messages from the main app
+self.onmessage = function (e) {
+  const { type } = e.data;
+
+  if (type === 'startRecording') {
+    console.log('Recording started');
+    isRecording = true;
+  } else if (type === 'stopRecording') {
+    console.log('Recording stopped');
+    isRecording = false;
+
+    // Save data as JSON
+    const date = new Date();
+    const filename = `wavesense_react_voltage_data_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}_${date.getHours()}:${date.getMinutes()}.json`;
+    const blob = new Blob([JSON.stringify(recordedData)], { type: 'application/json' });
+    self.postMessage({ type: 'download', filename, blob });
+
+    // Clear recorded data after saving
+    recordedData = [];
+  }
+};
+
+// WebSocket message handler
+const ws = new WebSocket('ws://localhost:8080');
+
+ws.onmessage = function (event) {
+  if (isRecording) {
+    let { n, signal } = JSON.parse(event.data);
+    console.log(`Recording data: ${n}, ${signal}`); // Debug statement
+    recordedData.push({ sample: n, voltage: signal });
+  }
+};
+
+ws.onclose = () => {
+  console.log('WebSocket connection closed');
+};
 ```
 
 ## Available Scripts

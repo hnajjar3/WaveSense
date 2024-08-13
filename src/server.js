@@ -3,10 +3,13 @@ const path = require('path');
 const WebSocket = require('ws');
 const { generateFunction } = require('./signalGenerator'); // Adjust the path as needed
 
+const config = require('config');
+
 const app = express();
-const port = 8080; // Single port for both HTTP and WebSocket
-const samplingRate = 10;
-const offset = 0;
+const port = config.get('server.port');
+const samplingRate = config.get('samplingRate');
+const noise = config.get('noise');
+const bias = config.get('bias');
 
 let currentChannel = 0;
 
@@ -46,7 +49,7 @@ wss.on('connection', (ws) => {
     let n = 0;
 
     const sendSignal = () => {
-        const signal = generateFunction(n, currentChannel, offset, samplingRate);
+        const signal = generateFunction(n, currentChannel, bias, samplingRate); // use bias instead of offset
         ws.send(JSON.stringify({ n, signal }));
         n++;
     };
