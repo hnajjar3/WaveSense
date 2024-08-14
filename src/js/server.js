@@ -14,7 +14,7 @@ const bias = config.get('bias');
 let currentChannel = 0;
 
 // Serve the static files from the React app
-app.use(express.static(path.join(__dirname, '../build'))); // Adjusted path
+app.use(express.static(path.join(__dirname, '../../build'))); // Adjusted path
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -33,8 +33,9 @@ app.post('/set-channel', (req, res) => {
 
 // All other routes should serve the React app's index.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../build', 'index.html')); // Adjusted path
+    res.sendFile(path.join(__dirname, '../../build', 'index.html')); // Adjusted path
 });
+
 
 // Create an HTTP server
 const server = app.listen(port, () => {

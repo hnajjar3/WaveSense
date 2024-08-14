@@ -8,7 +8,7 @@ const minMaxValues = {
 };
 
 const generateFunction = (n, channel, offset = 0, samplingRate = 10) => {
-    const f0 = 1; // Fundamental frequency
+    const f0 = 10; // Fundamental frequency
     const dt = 1 / samplingRate; // Dynamic time step based on samplingRate
     const t_n = n * dt;
     const { min, max } = minMaxValues[channel] || { min: -1, max: 1 };

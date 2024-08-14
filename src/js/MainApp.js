@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import Algebrite from 'algebrite'; // Import Algebrite
-import './App.css';
-import './darkMode.css';
+import '../css/App.css';
+import '../css/darkMode.css';
 import { DarkModeToggle } from './DarkModeToggle';
 
 Chart.register(...registerables);
 
-function App() {
+function MainApp() {
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
   const statsWorker = useRef(null); // Initialize statsWorker
@@ -29,8 +29,9 @@ function App() {
     max: 'N/A',
     min: 'N/A',
     mean: 'N/A',
-    rms: 'N/A'
+    rms: 'N/A',
   });
+
   // Use refs to store current state values
   const isLockedRef = useRef(false);
   const subsamplingRef = useRef(1);
@@ -237,7 +238,7 @@ function App() {
               statsWorker.current.postMessage({
                 action: 'process',
                 n: n,
-                signal: calculatedSignal
+                signal: calculatedSignal,
               });
 
               sampleCounter.current = 0;
@@ -270,204 +271,215 @@ function App() {
       const response = await fetch('http://localhost:8080/set-channel', {
         method: 'POST',
         headers: {
-  'Content-Type': 'application/json',
-},
-body: JSON.stringify({ channel: selectedChannel }),
-});
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ channel: selectedChannel }),
+      });
 
-const result = await response.text();
-console.log(result);
-} catch (error) {
-console.log('Error setting channel:', error);
-}
-};
+      const result = await response.text();
+      console.log(result);
+    } catch (error) {
+      console.log('Error setting channel:', error);
+    }
+  };
 
-const data = {
-labels: chartRef.current?.data.labels || [],  // Start with current labels if available
-datasets: [
-{
-label: 'Signal',
-data: chartRef.current?.data.datasets[0]?.data || [],  // Start with current data if available
-borderColor: 'rgba(75,192,192,1)',
-borderWidth: 2,
-fill: false,
-},
-],
-};
+  const data = {
+    labels: chartRef.current?.data.labels || [], // Start with current labels if available
+    datasets: [
+      {
+        label: 'Signal',
+        data: chartRef.current?.data.datasets[0]?.data || [], // Start with current data if available
+        borderColor: 'rgba(75,192,192,1)',
+        borderWidth: 2,
+        fill: false,
+      },
+    ],
+  };
 
-const options = {
-  animation: false, // Disable animation
-  scales: {
-    y: {
-      min: yMin,
-      max: yMax,
-      ticks: {
-        stepSize: 0.5,
+  const options = {
+    animation: false, // Disable animation
+    scales: {
+      y: {
+        min: yMin,
+        max: yMax,
+        ticks: {
+          stepSize: 0.5,
+        },
       },
     },
-  },
-  plugins: {
-    tooltip: {
-      enabled: false, // Disable the default tooltip
-      mode: 'nearest',
-      intersect: false,
-      external: function(context) {
-        const { chart, tooltip } = context;
-        const element = chart.canvas.parentNode.querySelector('div.tooltip');
+    plugins: {
+      tooltip: {
+        enabled: false, // Disable the default tooltip
+        mode: 'nearest',
+        intersect: false,
+        external: function (context) {
+          const { chart, tooltip } = context;
+          const element = chart.canvas.parentNode.querySelector('div.tooltip');
 
-        if (tooltip.opacity === 0) {
-          element.style.opacity = 0;
-          return;
-        }
-
-        element.style.opacity = 1;
-        element.style.left = `${tooltip.caretX}px`;
-        element.style.top = `${tooltip.caretY}px`;
-
-        if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
-          const dataPoint = tooltip.dataPoints[0];
-          const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
-
-          if (value !== undefined && value !== null) {
-            element.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
-          } else {
-            element.innerHTML = `Value: N/A`; // Fallback if value is undefined
+          if (tooltip.opacity === 0) {
+            element.style.opacity = 0;
+            return;
           }
-        }
-      }
-    }
-  }
-};
 
-return (
-<div className="App" style={{ display: 'flex' }}>
-<div style={{ width: '20%', padding: '10px', borderRight: '1px solid #ccc' }}>
-<h2>Controls</h2>
-<DarkModeToggle />
-<div>
-  <button onClick={() => {
-    const newLockState = !isLocked;
-    setIsLocked(newLockState);
-    console.log('Lock Screen Toggled:', newLockState); // Debugging statement
-  }}>
-    {isLocked ? 'Unlock Screen' : 'Lock Screen'}
-  </button>
-</div>
-<div>
-  <button onClick={handleRecordToggle}>
-    {isRecording ? 'Save Data' : 'Record Data'}
-  </button>
-</div>
-<div>
-  <button onClick={handleScreenshot}>
-    Capture Screenshot
-  </button>
-</div>
-<div>
-  <label>
-    Offset:
-    <input
-      type="number"
-      value={offset}
-      step="0.1"
-      onChange={(e) => setOffset(Number(e.target.value))}
-      style={{ marginLeft: '10px' }}
-    />
-  </label>
-</div>
-<div style={{ marginTop: '20px' }}>
-  <label>
-    Y-Axis Min:
-    <input
-      type="number"
-      value={yMin}
-      onChange={(e) => setYMin(Number(e.target.value))}
-      style={{ marginLeft: '10px' }}
-    />
-  </label>
-</div>
-<div style={{ marginTop: '10px' }}>
-  <label>
-    Y-Axis Max:
-    <input
-      type="number"
-      value={yMax}
-      onChange={(e) => setYMax(Number(e.target.value))}
-      style={{ marginLeft: '10px' }}
-    />
-  </label>
-</div>
-<div style={{ marginTop: '20px' }}>
-  <label>
-    X-Axis Points:
-    <input
-      type="number"
-      value={points}
-      onChange={(e) => setPoints(Number(e.target.value))}
-      style={{ marginLeft: '10px' }}
-    />
-  </label>
-</div>
-<div style={{ marginTop: '20px' }}>
-  <label>
-    Subsampling (1 = Min):
-    <input
-      type="number"
-      value={subsampling}
-      onChange={(e) => setSubsampling(Math.max(1, Number(e.target.value)))}
-      style={{ marginLeft: '10px' }}
-      min="1"
-      step="1"  // This ensures the arrows increase/decrease by 1
-    />
-  </label>
-</div>
-<div style={{ marginTop: '20px' }}>
-  <label>
-    Channel:
-    <select value={channel} onChange={handleChannelChange} style={{ marginLeft: '10px' }}>
-      <option value="0">ch0</option>
-      <option value="1">ch1</option>
-      <option value="2">ch2</option>
-      <option value="3">ch3</option>
-    </select>
-  </label>
-</div>
-<div style={{ marginTop: '20px' }}>
-  <label>
-    Conversion formula (y = ...):
-    <input
-      type="text"
-      value={formula}
-      onChange={(e) => setFormula(e.target.value)}
-      style={{ marginLeft: '10px' }}
-    />
-  </label>
-</div>
-</div>
-<div style={{ width: '80%', padding: '10px', position: 'relative' }}>
-  <h1>WaveSense React JS</h1>
-  {!isConnected && <p>Reconnecting to WebSocket...</p>}
-  <Line ref={chartRef} data={data} options={options} />
-  <div style={{ position: 'absolute', top: 10, right: 10, textAlign: 'right' }}>
-    <h3>Statistics</h3>
-    <p>Max: {stats.max}</p>
-    <p>Min: {stats.min}</p>
-    <p>Mean: {stats.mean}</p>
-    <p>RMS: {stats.rms}</p>
-  </div>
-  <div className="tooltip" style={{
-    position: 'absolute',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    color: 'white',
-    borderRadius: '4px',
-    padding: '5px',
-    opacity: 0,
-    pointerEvents: 'none',
-    transition: 'opacity 0.3s',
-  }}></div>
-</div>
-</div>
-);
+          element.style.opacity = 1;
+          element.style.left = `${tooltip.caretX}px`;
+          element.style.top = `${tooltip.caretY}px`;
+
+          if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
+            const dataPoint = tooltip.dataPoints[0];
+            const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
+
+            if (value !== undefined && value !== null) {
+              element.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
+            } else {
+              element.innerHTML = `Value: N/A`; // Fallback if value is undefined
+            }
+          }
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="MainApp" style={{ display: 'flex' }}>
+      <div style={{ width: '20%', padding: '10px', borderRight: '1px solid #ccc' }}>
+        <h2>Controls</h2>
+        <DarkModeToggle />
+        <div>
+          <button
+            onClick={() => {
+              const newLockState = !isLocked;
+              setIsLocked(newLockState);
+              console.log('Lock Screen Toggled:', newLockState); // Debugging statement
+            }}
+          >
+            {isLocked ? 'Unlock Screen' : 'Lock Screen'}
+          </button>
+        </div>
+        <div>
+          <button onClick={handleRecordToggle}>
+            {isRecording ? 'Save Data' : 'Record Data'}
+          </button>
+        </div>
+        <div>
+          <button onClick={handleScreenshot}>Capture Screenshot</button>
+        </div>
+        <div>
+          <label>
+            Offset:
+            <input
+              type="number"
+              value={offset}
+              step="0.1"
+              onChange={(e) => setOffset(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Y-Axis Min:
+            <input
+              type="number"
+              value={yMin}
+              onChange={(e) => setYMin(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '10px' }}>
+          <label>
+            Y-Axis Max:
+            <input
+              type="number"
+              value={yMax}
+              onChange={(e) => setYMax(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            X-Axis Points:
+            <input
+              type="number"
+              value={points}
+              onChange={(e) => setPoints(Number(e.target.value))}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Subsampling (1 = Min):
+            <input
+              type="number"
+              value={subsampling}
+              onChange={(e) => setSubsampling(Math.max(1, Number(e.target.value)))}
+              style={{ marginLeft: '10px' }}
+              min="1"
+              step="1" // This ensures the arrows increase/decrease by 1
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Channel:
+            <select value={channel} onChange={handleChannelChange} style={{ marginLeft: '10px' }}>
+              <option value="0">ch0</option>
+              <option value="1">ch1</option>
+              <option value="2">ch2</option>
+              <option value="3">ch3</option>
+            </select>
+          </label>
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <label>
+            Conversion formula (y = ...):
+            <input
+              type="text"
+              value={formula}
+              onChange={(e) => setFormula(e.target.value)}
+              style={{ marginLeft: '10px' }}
+            />
+          </label>
+        </div>
+      </div>
+
+      <div style={{ width: '80%', padding: '10px', position: 'relative' }}>
+        <h1>WaveSense React JS</h1>
+        {!isConnected && <p>Reconnecting to WebSocket...</p>}
+        <Line ref={chartRef} data={data} options={options} />
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            textAlign: 'right',
+          }}
+        >
+          <h3>Statistics</h3>
+          <p>Max: {stats.max}</p>
+          <p>Min: {stats.min}</p>
+          <p>Mean: {stats.mean}</p>
+          <p>RMS: {stats.rms}</p>
+        </div>
+        <div
+          className="tooltip"
+          style={{
+            position: 'absolute',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            borderRadius: '4px',
+            padding: '5px',
+            opacity: 0,
+            pointerEvents: 'none',
+            transition: 'opacity 0.3s',
+          }}
+        ></div>
+      </div>
+    </div>
+  );
 }
 
-export default App;
+export default MainApp;

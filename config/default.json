@@ -3,7 +3,7 @@
     "host": "localhost",
     "port": 8080
   },
-  "samplingRate": 10,
+  "samplingRate": 1000,
   "subsampling": 1,
   "channel": 0,
   "noise": 0.5,

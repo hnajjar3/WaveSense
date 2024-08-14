@@ -1,5 +1,5 @@
 import React from 'react';
-import './LockScreen.css';
+import '../css/LockScreen.css';
 
 const LockScreen = ({ onUnlock }) => {
     return (

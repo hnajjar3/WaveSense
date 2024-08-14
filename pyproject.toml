@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "wavesense-react"
+version = "0.1.0"
+description = ""
+authors = ["Hassan K. Najjar <hnajjar3@jh.edu>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^3.0.3"
+matplotlib = "^3.9.2"
+numpy = "^2.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+statsmodels = "^0.14.2"
+numpy = "^2.0.1"
+scipy = "^1.14.0"
+matplotlib = "^3.9.2"
+flask-cors = "^4.0.1"
+scikit-learn = "^1.5.1"
+seaborn = "^0.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

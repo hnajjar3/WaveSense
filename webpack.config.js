@@ -2,6 +2,7 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin'); // Ensure this line is present
 
 module.exports = {
+    entry: './src/index.js', // Adjust the entry path
     resolve: {
         fallback: {
             "path": require.resolve("path-browserify"),
@@ -14,4 +15,8 @@ module.exports = {
             ],
         }),
     ],
+    output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'dist'), // Define the output path
+    },
 };
