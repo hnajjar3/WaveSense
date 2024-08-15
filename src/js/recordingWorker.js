@@ -3,20 +3,7 @@
 // Initialize necessary variables
 let recordedData = [];
 let isRecording = false;
-
-// Set up the WebSocket connection
-const ws = new WebSocket('ws://localhost:8080');
-
-ws.onmessage = function (event) {
-  if (isRecording) {
-    let { n, signal } = JSON.parse(event.data);
-    recordedData.push({ sample: n, voltage: signal });
-  }
-};
-
-ws.onclose = () => {
-  console.log('WebSocket connection closed');
-};
+let ws;  // WebSocket connection will be created when the port is provided
 
 // Convert recorded data to CSV format
 function convertToCSV(data) {
@@ -27,11 +14,26 @@ function convertToCSV(data) {
 
 // Handle incoming messages from the main thread
 self.onmessage = function (e) {
-  const { type } = e.data;
+  const { type, serverPort } = e.data;
 
   if (type === 'startRecording') {
     console.log('Recording started');
     isRecording = true;
+
+    // If WebSocket hasn't been initialized yet, initialize it using the provided serverPort
+    if (!ws) {
+      ws = new WebSocket(`ws://localhost:${serverPort}`);
+      ws.onmessage = function (event) {
+        if (isRecording) {
+          let { n, signal } = JSON.parse(event.data);
+          recordedData.push({ sample: n, voltage: signal });
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+    }
   } else if (type === 'stopRecording') {
     console.log('Recording stopped');
     isRecording = false;

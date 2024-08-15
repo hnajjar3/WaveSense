@@ -11,6 +11,7 @@ python = "^3.10"
 flask = "^3.0.3"
 matplotlib = "^3.9.2"
 numpy = "^2.0.1"
+adafruit-circuitpython-ssd1306 = "^2.12.17"
 
 
 [tool.poetry.group.dev.dependencies]

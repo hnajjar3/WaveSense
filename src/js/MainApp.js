@@ -12,6 +12,7 @@ function MainApp() {
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
   const statsWorker = useRef(null); // Initialize statsWorker
+  const [serverPort, setPort] = useState(80)
   const [isConnected, setIsConnected] = useState(false);
   const [offset, setOffset] = useState(0); // Add default value
   const [yMin, setYMin] = useState(-1); // Add default value
@@ -103,6 +104,7 @@ function MainApp() {
     fetch('/config.json')
       .then((response) => response.json())
       .then((config) => {
+        setPort(config.port);
         setOffset(config.bias);
         setYMin(-config.yRange);
         setYMax(config.yRange);
@@ -185,7 +187,7 @@ function MainApp() {
     if (isRecording) {
       recordingWorker.current.postMessage({ type: 'stopRecording' });
     } else {
-      recordingWorker.current.postMessage({ type: 'startRecording' });
+      recordingWorker.current.postMessage({ type: 'startRecording', serverPort });  // Send serverPort when starting the recording
     }
     setIsRecording(!isRecording);
   };
@@ -208,7 +210,7 @@ function MainApp() {
       let ws;
 
       const connectWebSocket = () => {
-        ws = new WebSocket('ws://localhost:8080');
+        ws = new WebSocket(`ws://localhost:${serverPort}`);
 
         ws.onopen = () => {
           console.log('WebSocket connection established');
@@ -217,6 +219,7 @@ function MainApp() {
 
         ws.onmessage = (event) => {
           if (!isLockedRef.current) {
+            console.log(`${event.data}`)
             let { n, signal } = JSON.parse(event.data);
             signal = signal + offsetRef.current;
 
