@@ -21,7 +21,7 @@ ADC_BITS = 12
 ADC_MAX = (1 << ADC_BITS) - 1
 VOLTAGE_DIVIDER_RATIO = 5.06
 # VR_OFFSET = 0.55
-SAMPLING_RATE = 44000  # Hz for WebSocket transmission
+SAMPLING_RATE = 100  # Hz for WebSocket transmission
 OLED_UPDATE_INTERVAL = 0.1  # 100ms for OLED update
 
 app = Microdot()

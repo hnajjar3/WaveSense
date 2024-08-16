@@ -20,8 +20,8 @@ V_REF = 3.3
 ADC_BITS = 12
 ADC_MAX = (1 << ADC_BITS) - 1
 VOLTAGE_DIVIDER_RATIO = 5.06
-# VR_OFFSET = 0.55
-SAMPLING_RATE = 44000  # Hz for WebSocket transmission
+VR_OFFSET = 0.55
+SAMPLING_RATE = 100  # Hz for WebSocket transmission
 OLED_UPDATE_INTERVAL = 0.1  # 100ms for OLED update
 
 app = Microdot()
@@ -31,7 +31,7 @@ async def read_adc(n):
     raw_value = adc.read_u16()  # Read raw ADC value
     scaled_value = raw_value >> 4  # Scale down the 16-bit value to 12 bits
     voltage = scaled_value * V_REF / ADC_MAX  # Convert to voltage
-    actual_voltage = voltage * VOLTAGE_DIVIDER_RATIO  # Adjust for voltage divider
+    actual_voltage = voltage * VOLTAGE_DIVIDER_RATIO + VR_OFFSET  # Adjust for voltage divider
     return n, actual_voltage
 
 async def oled_task():

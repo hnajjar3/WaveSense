@@ -3,10 +3,10 @@
     "host": "localhost",
     "port": 80
   },
-  "samplingRate": 1000,
+  "samplingRate": 300,
   "subsampling": 1,
   "channel": 0,
-  "noise": 0.5,
+  "noise": 0.9,
   "bias": 0,
   "maxPoints": 100,
   "yZoomLevel": 1,

@@ -22,7 +22,7 @@ self.onmessage = function (e) {
 
     // If WebSocket hasn't been initialized yet, initialize it using the provided serverPort
     if (!ws) {
-      ws = new WebSocket(`ws://localhost:${serverPort}`);
+      ws = new WebSocket(`ws://localhost/ws:${serverPort}`);
       ws.onmessage = function (event) {
         if (isRecording) {
           let { n, signal } = JSON.parse(event.data);

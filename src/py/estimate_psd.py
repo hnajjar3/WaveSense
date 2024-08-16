@@ -18,7 +18,7 @@ def plot_psd():
 
         # Calculate the sampling frequency
         fs = 1 / (time[1] - time[0])
-        fs = 1000
+        fs = 44000
 
         # Compute the Power Spectral Density (PSD) using Welch's method
         plt.figure()

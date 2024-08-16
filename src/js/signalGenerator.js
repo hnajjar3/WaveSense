@@ -13,7 +13,7 @@ const generateFunction = (n, channel, offset = 0, samplingRate = 10) => {
     const t_n = n * dt;
     const { min, max } = minMaxValues[channel] || { min: -1, max: 1 };
     const period = 1 / f0;
-    noise = (Math.random()-0.5)*0.1
+    noise = (Math.random()-0.5)*0.3
 
     switch (channel) {
         case 1: // Sawtooth

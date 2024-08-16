@@ -104,7 +104,6 @@ function MainApp() {
     fetch('/config.json')
       .then((response) => response.json())
       .then((config) => {
-        setPort(config.port);
         setOffset(config.bias);
         setYMin(-config.yRange);
         setYMax(config.yRange);
@@ -269,9 +268,10 @@ function MainApp() {
   const handleChannelChange = async (event) => {
     const selectedChannel = parseInt(event.target.value, 10);
     setChannel(selectedChannel);
+    console.log(`Switching channels ${selectedChannel}`)
 
     try {
-      const response = await fetch('http://localhost:8080/set-channel', {
+      const response = await fetch(`http://localhost:${serverPort}/set-channel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
