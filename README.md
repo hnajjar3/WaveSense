@@ -36,6 +36,14 @@ WaveSense React JS is a real-time signal plotting and analysis application built
 
 ![WaveSense React JS Screenshot](screenshot.png)
 
+
+## Video Demo
+
+Check out the video demo of WaveSense here:
+
+[![Watch the video](https://img.youtube.com/vi/jhqp8_OhZGY/maxresdefault.jpg)](https://youtu.be/jhqp8_OhZGY)
+
+
 ## Installation
 
 To set up WaveSense React JS:
