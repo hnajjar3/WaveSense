@@ -50,7 +50,7 @@ wss.on('connection', (ws) => {
     let n = 0;
 
     const sendSignal = () => {
-        const signal = generateFunction(n, currentChannel, bias, samplingRate); // use bias instead of offset
+        const signal = generateFunction(n, currentChannel, bias, noise, samplingRate);
         ws.send(JSON.stringify({ n, signal }));
         n++;
     };

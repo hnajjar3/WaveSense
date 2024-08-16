@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import Algebrite from 'algebrite'; // Import Algebrite
+import { Container, Row, Col, Button, Form } from 'react-bootstrap'; // Import Form and other Bootstrap components
 import '../css/App.css';
 import '../css/darkMode.css';
 import { DarkModeToggle } from './DarkModeToggle';
@@ -128,6 +129,7 @@ function MainApp() {
 
   // Effect to handle Dark Mode
   useEffect(() => {
+    console.log("Current body classList:", document.body.classList);  // Debug
     if (isDarkMode) {
       document.body.classList.add('dark');
       document.body.classList.remove('light');
@@ -344,112 +346,98 @@ function MainApp() {
   };
 
   return (
-    <div className="MainApp" style={{ display: 'flex' }}>
-      <div style={{ width: '20%', padding: '10px', borderRight: '1px solid #ccc' }}>
+    <Container fluid className={`MainApp d-flex p-3 ${isDarkMode ? 'bg-dark text-light' : 'bg-light text-dark'}`}>
+      <Col md={2} className="p-3 border-right" style={{ backgroundColor: isDarkMode ? '#343a40' : '#f8f9fa', color: isDarkMode ? 'white' : 'black' }}>
         <h2>Controls</h2>
-        <DarkModeToggle />
-        <div>
-          <button
-            onClick={() => {
-              const newLockState = !isLocked;
-              setIsLocked(newLockState);
-              console.log('Lock Screen Toggled:', newLockState); // Debugging statement
-            }}
-          >
-            {isLocked ? 'Unlock Screen' : 'Lock Screen'}
-          </button>
+        <div className="mb-3">
+          <DarkModeToggle />
         </div>
-        <div>
-          <button onClick={handleRecordToggle}>
-            {isRecording ? 'Save Data' : 'Record Data'}
-          </button>
-        </div>
-        <div>
-          <button onClick={handleScreenshot}>Capture Screenshot</button>
-        </div>
-        <div>
-          <label>
-            Offset:
-            <input
-              type="number"
-              value={offset}
-              step="0.1"
-              onChange={(e) => setOffset(Number(e.target.value))}
-              style={{ marginLeft: '10px' }}
-            />
-          </label>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <label>
-            Y-Axis Min:
-            <input
-              type="number"
-              value={yMin}
-              onChange={(e) => setYMin(Number(e.target.value))}
-              style={{ marginLeft: '10px' }}
-            />
-          </label>
-        </div>
-        <div style={{ marginTop: '10px' }}>
-          <label>
-            Y-Axis Max:
-            <input
-              type="number"
-              value={yMax}
-              onChange={(e) => setYMax(Number(e.target.value))}
-              style={{ marginLeft: '10px' }}
-            />
-          </label>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <label>
-            X-Axis Points:
-            <input
-              type="number"
-              value={points}
-              onChange={(e) => setPoints(Number(e.target.value))}
-              style={{ marginLeft: '10px' }}
-            />
-          </label>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <label>
-            Subsampling (1 = Min):
-            <input
-              type="number"
-              value={subsampling}
-              onChange={(e) => setSubsampling(Math.max(1, Number(e.target.value)))}
-              style={{ marginLeft: '10px' }}
-              min="1"
-              step="1" // This ensures the arrows increase/decrease by 1
-            />
-          </label>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <label>
-            Channel:
-            <select value={channel} onChange={handleChannelChange} style={{ marginLeft: '10px' }}>
-              <option value="0">ch0</option>
-              <option value="1">ch1</option>
-              <option value="2">ch2</option>
-              <option value="3">ch3</option>
-            </select>
-          </label>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <label>
-            Conversion formula (y = ...):
-            <input
-              type="text"
-              value={formula}
-              onChange={(e) => setFormula(e.target.value)}
-              style={{ marginLeft: '10px' }}
-            />
-          </label>
-        </div>
-      </div>
+        <Button
+          className="mb-2"
+          variant={isLocked ? 'danger' : 'success'}
+          onClick={() => {
+            const newLockState = !isLocked;
+            setIsLocked(newLockState);
+            console.log('Lock Screen Toggled:', newLockState);
+          }}
+        >
+          {isLocked ? 'Unlock Screen' : 'Lock Screen'}
+        </Button>
+        <Button className="mb-2" onClick={handleRecordToggle}>
+          {isRecording ? 'Save Data' : 'Record Data'}
+        </Button>
+        <Button className="mb-2" onClick={handleScreenshot}>
+          Capture Screenshot
+        </Button>
 
-      <div style={{ width: '80%', padding: '10px', position: 'relative' }}>
+        <Form.Group className="mb-3">
+          <Form.Label>Offset:</Form.Label>
+          <Form.Control
+            type="number"
+            value={offset}
+            step="0.1"
+            onChange={(e) => setOffset(Number(e.target.value))}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Y-Axis Min:</Form.Label>
+          <Form.Control
+            type="number"
+            value={yMin}
+            onChange={(e) => setYMin(Number(e.target.value))}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Y-Axis Max:</Form.Label>
+          <Form.Control
+            type="number"
+            value={yMax}
+            onChange={(e) => setYMax(Number(e.target.value))}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>X-Axis Points:</Form.Label>
+          <Form.Control
+            type="number"
+            value={points}
+            onChange={(e) => setPoints(Number(e.target.value))}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Subsampling (1 = Min):</Form.Label>
+          <Form.Control
+            type="number"
+            value={subsampling}
+            onChange={(e) => setSubsampling(Math.max(1, Number(e.target.value)))}
+            min="1"
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Channel:</Form.Label>
+          <Form.Control as="select" value={channel} onChange={handleChannelChange}>
+            <option value="0">ch0</option>
+            <option value="1">ch1</option>
+            <option value="2">ch2</option>
+            <option value="3">ch3</option>
+          </Form.Control>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Conversion formula (y = ...):</Form.Label>
+          <Form.Control
+            type="text"
+            value={formula}
+            onChange={(e) => setFormula(e.target.value)}
+          />
+        </Form.Group>
+      </Col>
+
+      <Col md={10} className="p-3" style={{ backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff' }}>
         <h1>WaveSense React JS</h1>
         {!isConnected && <p>Reconnecting to WebSocket...</p>}
         <Line ref={chartRef} data={data} options={options} />
@@ -467,21 +455,8 @@ function MainApp() {
           <p>Mean: {stats.mean}</p>
           <p>RMS: {stats.rms}</p>
         </div>
-        <div
-          className="tooltip"
-          style={{
-            position: 'absolute',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            borderRadius: '4px',
-            padding: '5px',
-            opacity: 0,
-            pointerEvents: 'none',
-            transition: 'opacity 0.3s',
-          }}
-        ></div>
-      </div>
-    </div>
+      </Col>
+    </Container>
   );
 }
 

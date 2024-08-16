@@ -1,14 +1,22 @@
+/* Default (Light Mode) */
 body {
   --color-background: #fafafa;
   --color-foreground: #1f2023;
 }
 
+/* Dark Mode */
 body.dark {
   --color-background: #1f2023;
   --color-foreground: #efefef;
 }
 
-/* Apply the variables */
+/* Light Mode */
+body.light {
+  --color-background: #ffffff; /* Adjust this for a lighter background */
+  --color-foreground: #000000; /* Adjust for darker text */
+}
+
+/* Apply variables */
 body, html, #root, .App {
   margin: 0;
   padding: 0;
@@ -16,16 +24,16 @@ body, html, #root, .App {
   width: 100%;
   display: flex;
   flex-direction: row;
-  background-color: var(--color-background); /* Use variable */
-  color: var(--color-foreground); /* Use variable */
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
 
 /* Sidebar styling */
 .sidebar {
-  background-color: var(--color-background); /* Use variable */
+  background-color: var(--color-background);
   padding: 5px;
   width: 20%;
-  color: var(--color-foreground); /* Use variable */
+  color: var(--color-foreground);
 }
 
 /* Chart container */
@@ -34,7 +42,7 @@ body, html, #root, .App {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-background); /* Use variable */
+  background-color: var(--color-background);
 }
 
 /* Recharts styles */
@@ -49,7 +57,7 @@ body, html, #root, .App {
 }
 
 .recharts-line {
-  stroke: #ff6347 !important; /* Maintain vibrant line color */
+  stroke: #ff6347 !important;
 }
 
 .recharts-cartesian-grid line {
