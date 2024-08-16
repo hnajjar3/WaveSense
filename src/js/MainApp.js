@@ -302,47 +302,57 @@ function MainApp() {
   };
 
   const options = {
-    animation: false, // Disable animation
-    scales: {
-      y: {
-        min: yMin,
-        max: yMax,
-        ticks: {
-          stepSize: 0.5,
+      animation: false, // Disable animation
+      scales: {
+        y: {
+          min: yMin,
+          max: yMax,
+          ticks: {
+            stepSize: 0.5,
+          },
         },
       },
-    },
-    plugins: {
-      tooltip: {
-        enabled: false, // Disable the default tooltip
-        mode: 'nearest',
-        intersect: false,
-        external: function (context) {
-          const { chart, tooltip } = context;
-          const element = chart.canvas.parentNode.querySelector('div.tooltip');
+      plugins: {
+        tooltip: {
+          enabled: false, // Disable the default tooltip
+          mode: 'nearest',
+          intersect: false,
+          external: function (context) {
+            const { chart, tooltip } = context;
+            const tooltipEl = chart.canvas.parentNode.querySelector('div.tooltip');
 
-          if (tooltip.opacity === 0) {
-            element.style.opacity = 0;
-            return;
-          }
-
-          element.style.opacity = 1;
-          element.style.left = `${tooltip.caretX}px`;
-          element.style.top = `${tooltip.caretY}px`;
-
-          if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
-            const dataPoint = tooltip.dataPoints[0];
-            const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
-
-            if (value !== undefined && value !== null) {
-              element.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
-            } else {
-              element.innerHTML = `Value: N/A`; // Fallback if value is undefined
+            if (!tooltipEl) {
+              console.error('Tooltip element not found.');
+              return;
             }
-          }
+
+            // Hide if no tooltip
+            if (tooltip.opacity === 0) {
+              tooltipEl.style.opacity = 0;
+              return;
+            }
+
+            // Set caret position based on mouse position
+            const position = chart.canvas.getBoundingClientRect();
+
+            tooltipEl.style.opacity = 1;
+            tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 'px';
+            tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY + 'px';
+
+            // Set the content of the tooltip
+            if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
+              const dataPoint = tooltip.dataPoints[0];
+              const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
+
+              if (value !== undefined && value !== null) {
+                tooltipEl.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
+              } else {
+                tooltipEl.innerHTML = `Value: N/A`; // Fallback if value is undefined
+              }
+            }
+          },
         },
       },
-    },
   };
 
   return (
@@ -438,8 +448,18 @@ function MainApp() {
       </Col>
 
       <Col md={10} className="p-3" style={{ backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff' }}>
-        <h1>WaveSense React JS</h1>
+        <h1>WaveSense</h1>
         {!isConnected && <p>Reconnecting to WebSocket...</p>}
+        <div className="tooltip"
+            style={{
+                position: 'absolute',
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                borderRadius: '4px',
+                padding: '5px',
+                opacity: 0,  // Hide tooltip initially
+                pointerEvents: 'none',
+                transition: 'opacity 0.3s',}}></div>
         <Line ref={chartRef} data={data} options={options} />
         <div
           style={{
