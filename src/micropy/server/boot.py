@@ -2,8 +2,8 @@ import network
 import time
 
 # Wi-Fi credentials
-SSID = 'NAJJAR HOME WIFI'
-PASSWORD = 'awe7-puma-print'
+SSID = 'WIFI NAME'
+PASSWORD = 'MY-WIFI-PASSWORD'
 
 def connect_wifi():
     wlan = network.WLAN(network.STA_IF)
