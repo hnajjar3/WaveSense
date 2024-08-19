@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // Use useNavigate instead of useHistory
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import Algebrite from 'algebrite'; // Import Algebrite
 import { Container, Row, Col, Button, Form } from 'react-bootstrap'; // Import Form and other Bootstrap components
+import { DarkModeToggle } from './DarkModeToggle';
 import '../css/App.css';
 import '../css/darkMode.css';
-import { DarkModeToggle } from './DarkModeToggle';
 
 Chart.register(...registerables);
 
-function MainApp() {
+function SignalPlotter() {
+  const navigate = useNavigate(); // Initialize useNavigate
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
   const statsWorker = useRef(null); // Initialize statsWorker
@@ -205,6 +207,16 @@ function MainApp() {
     }
   };
 
+  // Go to PSD API route
+  const handlePsdClick = () => {
+    navigate('/periodogram'); // Use navigate to go to /periodogram
+  };
+
+  // Navigate to Function Generator Control
+  const handleFuncGenClick = () => {
+    navigate('/func-gen-ctl');
+  };
+
   // WebSocket handling
   useEffect(() => {
     if (configLoaded) {
@@ -220,35 +232,44 @@ function MainApp() {
 
         ws.onmessage = (event) => {
           if (!isLockedRef.current) {
-            console.log(`${event.data}`)
-            let { n, signal } = JSON.parse(event.data);
-            signal = signal + offsetRef.current;
+            console.log(`${event.data}`);
 
-            const calculatedSignal = applyFormula(signal);
+            try {
+              let { n, signal } = JSON.parse(event.data);
+              signal = signal + offsetRef.current;
 
-            sampleCounter.current++;
-            if (sampleCounter.current >= Math.max(1, subsamplingRef.current)) {
-              if (chartRef.current.data.labels.length >= pointsRef.current) {
-                removeData(chartRef.current);
+              const calculatedSignal = applyFormula(signal);
+
+              sampleCounter.current++;
+
+              // Check if the chart exists and is available
+              if (chartRef.current && chartRef.current.data && sampleCounter.current >= Math.max(1, subsamplingRef.current)) {
+                if (chartRef.current.data.labels.length >= pointsRef.current) {
+                  removeData(chartRef.current);
+                }
+
+                addData(chartRef.current, n, calculatedSignal);
+
+                if (isRecording) {
+                  setRecordedData((prevData) => [...prevData, { sample: n, voltage: calculatedSignal }]);
+                }
+
+                // Send data to statsWorker for processing
+                statsWorker.current.postMessage({
+                  action: 'process',
+                  n: n,
+                  signal: calculatedSignal,
+                });
+
+                sampleCounter.current = 0;
+              } else {
+                console.log('Chart is not available on this route');
               }
-
-              addData(chartRef.current, n, calculatedSignal);
-
-              if (isRecording) {
-                setRecordedData((prevData) => [...prevData, { sample: n, voltage: calculatedSignal }]);
-              }
-
-              // Send data to statsWorker for processing
-              statsWorker.current.postMessage({
-                action: 'process',
-                n: n,
-                signal: calculatedSignal,
-              });
-
-              sampleCounter.current = 0;
+            } catch (error) {
+              console.error('Error parsing WebSocket message:', error);
             }
           } else {
-            console.log(`Screen is locked!`);
+            console.log('Screen is locked!');
           }
         };
 
@@ -268,24 +289,27 @@ function MainApp() {
   }, [configLoaded]);
 
   const handleChannelChange = async (event) => {
-    const selectedChannel = parseInt(event.target.value, 10);
-    setChannel(selectedChannel);
-    console.log(`Switching channels ${selectedChannel}`)
+      const selectedChannel = parseInt(event.target.value, 10);
+      setChannel(selectedChannel);
 
-    try {
-      const response = await fetch(`http://localhost:${serverPort}/set-channel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ channel: selectedChannel }),
-      });
+      try {
+          const response = await fetch(`http://localhost:8000/channels/`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ channel: selectedChannel }),
+          });
 
-      const result = await response.text();
-      console.log(result);
-    } catch (error) {
-      console.log('Error setting channel:', error);
-    }
+          if (!response.ok) {
+              throw new Error(`Failed to switch channel: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          console.log(`Channel switched to:`, result);
+      } catch (error) {
+          console.error('Error setting channel:', error);
+      }
   };
 
   const data = {
@@ -357,13 +381,13 @@ function MainApp() {
 
   return (
     <Container fluid className={`MainApp d-flex p-3 ${isDarkMode ? 'bg-dark text-light' : 'bg-light text-dark'}`}>
-      <Col md={2} className="p-3 border-right" style={{ backgroundColor: isDarkMode ? '#343a40' : '#f8f9fa', color: isDarkMode ? 'white' : 'black' }}>
+    <Col md={2} className="sidebar border-right"> {/* Apply the 'sidebar' class */}
         <h2>Controls</h2>
-        <div className="mb-3">
+        <div className="mb-auto">
           <DarkModeToggle />
         </div>
         <Button
-          className="mb-2"
+          className="mb-auto"
           variant={isLocked ? 'danger' : 'success'}
           onClick={() => {
             const newLockState = !isLocked;
@@ -373,14 +397,19 @@ function MainApp() {
         >
           {isLocked ? 'Unlock Screen' : 'Lock Screen'}
         </Button>
-        <Button className="mb-2" onClick={handleRecordToggle}>
+        <Button className="mb-auto" onClick={handleRecordToggle}>
           {isRecording ? 'Save Data' : 'Record Data'}
         </Button>
-        <Button className="mb-2" onClick={handleScreenshot}>
+        <Button className="mb-auto" onClick={handleScreenshot}>
           Capture Screenshot
         </Button>
-
-        <Form.Group className="mb-3">
+        <Button className="mb-auto" onClick={handlePsdClick}>
+          Periodogram
+        </Button>
+        <Button className="mb-auto" onClick={handleFuncGenClick}>
+        Function Generator
+        </Button>
+        <Form.Group className="mb-auto">
           <Form.Label>Offset:</Form.Label>
           <Form.Control
             type="number"
@@ -390,7 +419,7 @@ function MainApp() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-auto">
           <Form.Label>Y-Axis Min:</Form.Label>
           <Form.Control
             type="number"
@@ -399,7 +428,7 @@ function MainApp() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-auto">
           <Form.Label>Y-Axis Max:</Form.Label>
           <Form.Control
             type="number"
@@ -408,7 +437,7 @@ function MainApp() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-auto">
           <Form.Label>X-Axis Points:</Form.Label>
           <Form.Control
             type="number"
@@ -417,7 +446,7 @@ function MainApp() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-auto">
           <Form.Label>Subsampling (1 = Min):</Form.Label>
           <Form.Control
             type="number"
@@ -427,7 +456,7 @@ function MainApp() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-auto">
           <Form.Label>Channel:</Form.Label>
           <Form.Control as="select" value={channel} onChange={handleChannelChange}>
             <option value="0">ch0</option>
@@ -437,7 +466,7 @@ function MainApp() {
           </Form.Control>
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-auto">
           <Form.Label>Conversion formula (y = ...):</Form.Label>
           <Form.Control
             type="text"
@@ -447,7 +476,7 @@ function MainApp() {
         </Form.Group>
       </Col>
 
-      <Col md={10} className="p-3" style={{ backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff' }}>
+      <Col md={10} className="p-auto" style={{ backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff' }}>
         <h1>WaveSense</h1>
         {!isConnected && <p>Reconnecting to WebSocket...</p>}
         <div className="tooltip"
@@ -480,4 +509,4 @@ function MainApp() {
   );
 }
 
-export default MainApp;
+export default SignalPlotter;

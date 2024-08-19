@@ -1,40 +1,78 @@
 body, html, #root, .App {
     margin: 0;
     padding: 0;
-    height: 100%;
-    width: 100%;
+    height: 100%; /* Make it full height for consistency */
+    width: 100%;  /* Full width to avoid clipping */
     display: flex;
     flex-direction: row; /* Set flex direction to row for side-by-side layout */
     background-color: var(--color-background); /* Use CSS variables for background */
     color: var(--color-foreground); /* Use CSS variables for text color */
 }
 
+/* Sidebar styling for divs inside */
+.sidebar div {
+    margin: 2px; /* Slight margin to create separation */
+}
+
 /* Sidebar styling */
 .sidebar {
     background-color: var(--color-background); /* Match the main background */
-    padding: 5px;
-    width: 20%; /* Width for the sidebar */
+    padding: 2px; /* Small padding inside sidebar */
+    width: 15%; /* 15% width for the sidebar */
     color: var(--color-foreground); /* Light or dark text color */
+    display: flex;
+    flex-direction: column; /* Ensure items are stacked vertically */
+    align-items: center; /* Center items horizontally */
 }
 
-/* Sidebar styling for divs inside */
-.sidebar div {
-    margin: 5px;
+/* Form controls inside the sidebar */
+.sidebar form,
+.sidebar input,
+.sidebar label,
+.sidebar button,
+.sidebar select {
+    width: 90%; /* Form controls take up 90% of the sidebar's width */
+    margin: 2px 0; /* Small vertical margin for spacing */
+}
+
+/* Make sure buttons and input fields are aligned properly */
+.sidebar button {
+    width: 70%;
+    padding: 5px; /* Slight padding for buttons */
+}
+
+.sidebar input,
+.sidebar select {
+    width: 80%;
+    padding: 2px; /* Small padding for inputs and selects */
+}
+
+/* Tooltip styling */
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 2px;
+    padding: 3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
 }
 
 /* Chart container */
 .chart-container {
-    width: 80%; /* Take up the remaining space */
+    width: 85%; /* Take up the remaining space (85%) */
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: var(--color-background); /* Use the background color variable */
+    padding: 2px; /* Small padding for the chart container */
 }
 
 /* Ensures the chart takes up all available space */
 .chart-container > div {
-    width: 100%; /* Ensure full width of container */
-    height: 100%; /* Ensure full height of container */
+    width: 100%; /* Full width for the chart */
+    height: 100%; /* Full height for the chart */
 }
 
 /* Tooltip styling */
@@ -54,16 +92,4 @@ body, html, #root, .App {
 
 .recharts-cartesian-grid line {
     stroke: var(--color-foreground) !important; /* Subtle grid lines */
-}
-
-/* Tooltip styling */
-.tooltip {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border-radius: 4px;
-    padding: 5px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
 }
