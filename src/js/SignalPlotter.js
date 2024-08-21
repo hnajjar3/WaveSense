@@ -10,7 +10,7 @@ import '../css/darkMode.css';
 
 Chart.register(...registerables);
 
-function SignalPlotter() {
+function SignalPlotter({ alpha, filteringEnabled }) {
   const navigate = useNavigate(); // Initialize useNavigate
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
@@ -43,6 +43,7 @@ function SignalPlotter() {
   const pointsRef = useRef(100);
   const sampleCounter = useRef(0);
   const formulaRef = useRef('x');
+  const previousFiltered = useRef(0);
 
   useEffect(() => {
     subsamplingRef.current = subsampling;
@@ -118,14 +119,13 @@ function SignalPlotter() {
       })
       .catch((error) => {
         console.error('Error fetching config:', error);
-        // Set default values if the config fails to load
-        setOffset(0); // default bias
-        setYMin(-1); // default yMin
-        setYMax(1); // default yMax
-        setPoints(100); // default points
-        setSubsampling(1); // default subsampling rate
-        setChannel(0); // default channel
-        setConfigLoaded(true); // Proceed with default settings
+        setOffset(0);
+        setYMin(-1);
+        setYMax(1);
+        setPoints(100);
+        setSubsampling(1);
+        setChannel(0);
+        setConfigLoaded(true);
       });
   }, []);
 
@@ -236,9 +236,23 @@ function SignalPlotter() {
 
             try {
               let { n, signal } = JSON.parse(event.data);
+
+              // Initialize previousFiltered on the first signal
+              if (previousFiltered.current === 0) {
+                previousFiltered.current = signal;
+              }
+
+              // Apply offset
               signal = signal + offsetRef.current;
 
-              const calculatedSignal = applyFormula(signal);
+              // Apply leaky integrator only if filtering is enabled
+              if (filteringEnabled) {
+                signal = alpha * signal + (1 - alpha) * previousFiltered.current;
+              }
+
+              previousFiltered.current = signal;
+
+              const calculatedSignal = applyFormula(previousFiltered.current);
 
               sampleCounter.current++;
 
@@ -325,58 +339,117 @@ function SignalPlotter() {
     ],
   };
 
+
+  const custom_canvas_background_color = {
+    id: 'custom_canvas_background_color',
+    beforeDraw: (chart) => {
+      const {
+        ctx,
+        chartArea: { top, right, bottom, left, width, height },
+      } = chart;
+
+      // Set the canvas background color based on the CSS variable
+      const backgroundColor = getComputedStyle(document.body).getPropertyValue('--color-background');
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over'; // Ensure background is drawn first
+      ctx.fillStyle = backgroundColor; // Use the CSS variable
+      ctx.fillRect(left, top, width, height); // Fill the entire chart area
+      ctx.restore();
+    }
+  };
+
   const options = {
-      animation: false, // Disable animation
-      scales: {
-        y: {
-          min: yMin,
-          max: yMax,
-          ticks: {
-            stepSize: 0.5,
-          },
+    animation: false, // Disable animation
+    scales: {
+      y: {
+        min: yMin,
+        max: yMax,
+        ticks: {
+          stepSize: 0.5,
+          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic text color
         },
+        grid: {
+          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic grid line color
+        }
       },
-      plugins: {
-        tooltip: {
-          enabled: false, // Disable the default tooltip
-          mode: 'nearest',
-          intersect: false,
-          external: function (context) {
-            const { chart, tooltip } = context;
-            const tooltipEl = chart.canvas.parentNode.querySelector('div.tooltip');
-
-            if (!tooltipEl) {
-              console.error('Tooltip element not found.');
-              return;
-            }
-
-            // Hide if no tooltip
-            if (tooltip.opacity === 0) {
-              tooltipEl.style.opacity = 0;
-              return;
-            }
-
-            // Set caret position based on mouse position
-            const position = chart.canvas.getBoundingClientRect();
-
-            tooltipEl.style.opacity = 1;
-            tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 'px';
-            tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY + 'px';
-
-            // Set the content of the tooltip
-            if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
-              const dataPoint = tooltip.dataPoints[0];
-              const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
-
-              if (value !== undefined && value !== null) {
-                tooltipEl.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
-              } else {
-                tooltipEl.innerHTML = `Value: N/A`; // Fallback if value is undefined
-              }
-            }
-          },
+      x: {
+        ticks: {
+          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic text color
         },
+        grid: {
+          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic grid line color
+        }
+      }
+    },
+
+
+    plugins: {
+      tooltip: {
+        enabled: false, // Disable the default tooltip
+        mode: 'nearest',
+        intersect: false,
+        external: function (context) {
+          const { chart, tooltip } = context;
+          const tooltipEl = chart.canvas.parentNode.querySelector('div.tooltip');
+
+          if (!tooltipEl) {
+            console.error('Tooltip element not found.');
+            return;
+          }
+
+          // Hide if no tooltip
+          if (tooltip.opacity === 0) {
+            tooltipEl.style.opacity = 0;
+            return;
+          }
+
+          // Set caret position based on mouse position
+          const position = chart.canvas.getBoundingClientRect();
+
+          tooltipEl.style.opacity = 1;
+          tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 'px';
+          tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY + 'px';
+
+          // Set the content of the tooltip using dynamic colors
+          tooltipEl.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--color-background');
+          tooltipEl.style.color = getComputedStyle(document.body).getPropertyValue('--color-foreground');
+
+          // Set the content of the tooltip
+          if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
+            const dataPoint = tooltip.dataPoints[0];
+            const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
+
+            if (value !== undefined && value !== null) {
+              tooltipEl.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
+            } else {
+              tooltipEl.innerHTML = `Value: N/A`; // Fallback if value is undefined
+            }
+          }
+        }
       },
+      beforeDraw: (chart) => {
+        const ctx = chart.ctx;
+        const chartArea = chart.chartArea;
+
+        // Get the current background color from CSS
+        const backgroundColor = getComputedStyle(document.body).getPropertyValue('--color-background');
+
+        // Fill the chart background with the dynamic color
+        ctx.save();
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
+        ctx.restore();
+      }
+    },
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+      }
+    },
   };
 
   return (
@@ -402,6 +475,9 @@ function SignalPlotter() {
         </Button>
         <Button className="mb-auto" onClick={handleScreenshot}>
           Capture Screenshot
+        </Button>
+        <Button className="mb-auto" onClick={() => navigate('/filter-settings')}>
+          Filter Settings
         </Button>
         <Button className="mb-auto" onClick={handlePsdClick}>
           Periodogram

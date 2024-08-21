@@ -36,9 +36,12 @@ body, html, #root, .App {
 }
 
 /* Make sure buttons and input fields are aligned properly */
-.sidebar button {
-    width: 70%;
-    padding: 5px; /* Slight padding for buttons */
+
+.sidebar button,
+.sidebar input,
+.sidebar select {
+    width: 80%; /* Consistent width for buttons, inputs, and selects */
+    padding: 2px; /* Small padding for inputs and selects */
 }
 
 .sidebar input,
@@ -61,18 +64,13 @@ body, html, #root, .App {
 
 /* Chart container */
 .chart-container {
-    width: 85%; /* Take up the remaining space (85%) */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-background); /* Use the background color variable */
-    padding: 2px; /* Small padding for the chart container */
-}
-
-/* Ensures the chart takes up all available space */
-.chart-container > div {
-    width: 100%; /* Full width for the chart */
-    height: 100%; /* Full height for the chart */
+  width: 85%; /* Adjust as needed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background); /* Use the CSS variable */
+  padding: 2px;
+  box-shadow: none; /* Remove any shadow that might be affecting the look */
 }
 
 /* Tooltip styling */
@@ -92,4 +90,14 @@ body, html, #root, .App {
 
 .recharts-cartesian-grid line {
     stroke: var(--color-foreground) !important; /* Subtle grid lines */
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 25%; /* Increase sidebar width for smaller screens */
+        padding: 4px; /* Slightly increase padding on smaller screens */
+    }
+    .chart-container {
+        width: 75%; /* Adjust chart container accordingly */
+    }
 }

@@ -6,14 +6,14 @@ body {
 
 /* Dark Mode */
 body.dark {
-  --color-background: #1f2023;
-  --color-foreground: #efefef;
+  --color-background: #1f1f1f; /* Dark background for the chart */
+  --color-foreground: #ffffff; /* Light text color for dark mode */
 }
 
 /* Light Mode */
 body.light {
-  --color-background: #ffffff; /* Adjust this for a lighter background */
-  --color-foreground: #000000; /* Adjust for darker text */
+  --color-background: #ffffff; /* Light background for the chart */
+  --color-foreground: #000000; /* Dark text color for light mode */
 }
 
 /* Apply variables */

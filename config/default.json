@@ -7,9 +7,13 @@
   "frequency": 1,
   "subsampling": 1,
   "channel": 0,
-  "noise": 0.1,
+  "noise": 0.9,
   "bias": 0.0,
   "maxPoints": 100,
   "yZoomLevel": 1,
-  "yRange": 1.5
+  "yRange": 1.5,
+  "alpha": 0.99,
+  "filter": {
+    "enable": false
+  }
 }
