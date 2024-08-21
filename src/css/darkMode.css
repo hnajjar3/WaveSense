@@ -16,6 +16,27 @@ body.light {
   --color-foreground: #000000; /* Dark text color for light mode */
 }
 
+/* App.css or darkMode.css */
+.dark-mode-bg {
+  background-color: #1f1f1f;
+  color: white;
+}
+
+.light-mode-bg {
+  background-color: #ffffff;
+  color: black;
+}
+
+.dark-mode {
+  background-color: #1f1f1f;
+  color: white;
+}
+
+.light-mode {
+  background-color: #ffffff;
+  color: black;
+}
+
 /* Apply variables */
 body, html, #root, .App {
   margin: 0;

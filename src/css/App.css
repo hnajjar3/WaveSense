@@ -12,17 +12,26 @@ body, html, #root, .App {
 /* Sidebar styling for divs inside */
 .sidebar div {
     margin: 2px; /* Slight margin to create separation */
+    box-sizing: border-box;
+
 }
 
 /* Sidebar styling */
 .sidebar {
     background-color: var(--color-background); /* Match the main background */
-    padding: 2px; /* Small padding inside sidebar */
-    width: 15%; /* 15% width for the sidebar */
+    padding: 1px; /* Small padding inside sidebar */
+    margin: 0;
+    width: 9%; /* 15% width for the sidebar */
     color: var(--color-foreground); /* Light or dark text color */
     display: flex;
     flex-direction: column; /* Ensure items are stacked vertically */
-    align-items: center; /* Center items horizontally */
+    align-items: left; /* Center items horizontally */
+    box-sizing: border-box;
+}
+
+.control-section h4 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
 }
 
 /* Form controls inside the sidebar */
@@ -32,7 +41,7 @@ body, html, #root, .App {
 .sidebar button,
 .sidebar select {
     width: 90%; /* Form controls take up 90% of the sidebar's width */
-    margin: 2px 0; /* Small vertical margin for spacing */
+    margin: 1px 0; /* Small vertical margin for spacing */
 }
 
 /* Make sure buttons and input fields are aligned properly */
@@ -41,13 +50,32 @@ body, html, #root, .App {
 .sidebar input,
 .sidebar select {
     width: 80%; /* Consistent width for buttons, inputs, and selects */
-    padding: 2px; /* Small padding for inputs and selects */
+    padding: 1px; /* Small padding for inputs and selects */
 }
 
 .sidebar input,
 .sidebar select {
     width: 80%;
-    padding: 2px; /* Small padding for inputs and selects */
+    padding: 1px; /* Small padding for inputs and selects */
+}
+
+/* Styling for the Modal */
+.modal-content {
+  background-color: var(--modal-bg);
+  color: var(--modal-text);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+/* Dark mode modal styles */
+.body.dark .modal-content {
+  --modal-bg: #333;
+  --modal-text: #fff;
+}
+
+.body.light .modal-content {
+  --modal-bg: #fff;
+  --modal-text: #000;
 }
 
 /* Tooltip styling */
@@ -64,13 +92,14 @@ body, html, #root, .App {
 
 /* Chart container */
 .chart-container {
-  width: 85%; /* Adjust as needed */
+  width: 90%; /* Adjust as needed */
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--color-background); /* Use the CSS variable */
-  padding: 2px;
+  padding: 1px;
   box-shadow: none; /* Remove any shadow that might be affecting the look */
+  box-sizing: border-box;
 }
 
 /* Tooltip styling */

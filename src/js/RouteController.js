@@ -5,8 +5,10 @@ import PlotPeriodogram from './PlotPeriodogram';  // Import the PSD plotting com
 import FunctionGeneratorControl from './FunctionGeneratorControl';
 import SavitzkyGolayFilterView from './SavitzkyGolayFilterView'; // Create this component
 import FilterSettings from './FilterSettings';
+import { DarkModeToggle } from './DarkModeToggle';
 
 function RouteController() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [alpha, setAlpha] = useState(0.2);  // Default alpha value
   const [filteringEnabled, setFilteringEnabled] = useState(true);  // Default filtering value
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -33,6 +35,11 @@ function RouteController() {
 
   return (
     <Router>
+      {/* Add the DarkModeToggle at a higher level so it's available everywhere */}
+      <div>
+        <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      </div>
+
       <Routes>
         {/* Route for the Periodogram Plot */}
         <Route path="/periodogram" element={<PlotPeriodogram />} />
@@ -44,7 +51,17 @@ function RouteController() {
         <Route path="/sav-golay-filt" element={<SavitzkyGolayFilterView />} />
 
         {/* Default route for the Signal Plotter */}
-        <Route path="/" element={<SignalPlotter />} />
+        {/* Pass isDarkMode, alpha, and filteringEnabled as props */}
+        <Route
+          path="/"
+          element={
+            <SignalPlotter
+              isDarkMode={isDarkMode}
+              alpha={alpha}
+              filteringEnabled={filteringEnabled}
+            />
+          }
+        />
       </Routes>
     </Router>
   );

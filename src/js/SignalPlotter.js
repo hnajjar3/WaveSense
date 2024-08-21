@@ -11,7 +11,7 @@ import '../css/darkMode.css';
 
 Chart.register(...registerables);
 
-function SignalPlotter() {
+const SignalPlotter = ({ isDarkMode }) => {
   const navigate = useNavigate();
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
@@ -24,7 +24,6 @@ function SignalPlotter() {
   const [points, setPoints] = useState(100);
   const [subsampling, setSubsampling] = useState(1);
   const [channel, setChannel] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedData, setRecordedData] = useState([]);
@@ -33,6 +32,7 @@ function SignalPlotter() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const alphaRef = useRef(0.2);
   const filteringEnabledRef = useRef(true);
+  const [showAdjustmentsModal, setShowAdjustmentsModal] = useState(false);
   const [stats, setStats] = useState({
     max: 'N/A',
     min: 'N/A',
@@ -143,15 +143,24 @@ function SignalPlotter() {
 
   // Effect to handle Dark Mode
   useEffect(() => {
-    console.log("Current body classList:", document.body.classList);  // Debug
-    if (isDarkMode) {
-      document.body.classList.add('dark');
-      document.body.classList.remove('light');
-    } else {
-      document.body.classList.add('light');
-      document.body.classList.remove('dark');
-    }
-  }, [isDarkMode]);
+  console.log(`Toggling dark ${isDarkMode}`)
+  if (chartRef.current) {
+    const chart = chartRef.current;
+
+    // Update chart options based on dark mode
+    chart.options.scales.x.ticks.color = isDarkMode ? '#ffffff' : '#000000';
+    chart.options.scales.y.ticks.color = isDarkMode ? '#ffffff' : '#000000';
+    chart.options.scales.x.grid.color = isDarkMode ? '#666666' : '#cccccc';
+    chart.options.scales.y.grid.color = isDarkMode ? '#666666' : '#cccccc';
+
+    // Update the background of the chart
+    chart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#333333' : '#ffffff';
+    chart.options.plugins.tooltip.titleColor = isDarkMode ? '#ffffff' : '#000000';
+    chart.options.plugins.tooltip.bodyColor = isDarkMode ? '#ffffff' : '#000000';
+
+    chart.update(); // Trigger chart update to apply new options
+  }
+}, [isDarkMode]);
 
   const addData = (chart, label, newData) => {
     chart.data.labels.push(label);
@@ -210,15 +219,24 @@ function SignalPlotter() {
   const handleScreenshot = () => {
     const chart = chartRef.current;
     if (chart) {
+      // Dynamically set the canvas background color based on the current dark mode
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = isDarkMode ? '#1f1f1f' : '#ffffff'; // Dark or light background
+      ctx.fillRect(0, 0, chart.width, chart.height);
+      ctx.restore();
+
+      // Capture the screenshot
       const url = chart.canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = url;
       link.download = `waveform_screenshot_${new Date().toISOString()}.png`;
       link.click();
+
       console.log('Screenshot captured');
     }
   };
-
   // Go to PSD API route
   const handlePsdClick = () => {
     navigate('/periodogram'); // Use navigate to go to /periodogram
@@ -360,191 +378,193 @@ function SignalPlotter() {
         chartArea: { top, right, bottom, left, width, height },
       } = chart;
 
-      // Set the canvas background color based on the CSS variable
-      const backgroundColor = getComputedStyle(document.body).getPropertyValue('--color-background');
-
       ctx.save();
-      ctx.globalCompositeOperation = 'destination-over'; // Ensure background is drawn first
-      ctx.fillStyle = backgroundColor; // Use the CSS variable
-      ctx.fillRect(left, top, width, height); // Fill the entire chart area
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = isDarkMode ? '#1f1f1f' : '#ffffff'; // Use dark or light background
+      ctx.fillRect(left, top, width, height);
       ctx.restore();
-    }
+    },
   };
 
   const options = {
-    animation: false, // Disable animation
-    scales: {
-      y: {
-        min: yMin,
-        max: yMax,
-        ticks: {
-          stepSize: 0.5,
-          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic text color
-        },
-        grid: {
-          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic grid line color
-        }
+  plugins: [custom_canvas_background_color],
+  animation: false, // Disable animation
+  scales: {
+    y: {
+      min: yMin,
+      max: yMax,
+      ticks: {
+        stepSize: 0.5,
+        color: isDarkMode ? '#ffffff' : '#000000', // Dynamic text color
       },
-      x: {
-        ticks: {
-          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic text color
-        },
-        grid: {
-          color: getComputedStyle(document.body).getPropertyValue('--color-foreground'), // Dynamic grid line color
-        }
-      }
-    },
-
-
-    plugins: {
-      tooltip: {
-        enabled: false, // Disable the default tooltip
-        mode: 'nearest',
-        intersect: false,
-        external: function (context) {
-          const { chart, tooltip } = context;
-          const tooltipEl = chart.canvas.parentNode.querySelector('div.tooltip');
-
-          if (!tooltipEl) {
-            console.error('Tooltip element not found.');
-            return;
-          }
-
-          // Hide if no tooltip
-          if (tooltip.opacity === 0) {
-            tooltipEl.style.opacity = 0;
-            return;
-          }
-
-          // Set caret position based on mouse position
-          const position = chart.canvas.getBoundingClientRect();
-
-          tooltipEl.style.opacity = 1;
-          tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 'px';
-          tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY + 'px';
-
-          // Set the content of the tooltip using dynamic colors
-          tooltipEl.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--color-background');
-          tooltipEl.style.color = getComputedStyle(document.body).getPropertyValue('--color-foreground');
-
-          // Set the content of the tooltip
-          if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
-            const dataPoint = tooltip.dataPoints[0];
-            const value = dataPoint.raw !== undefined ? dataPoint.raw : dataPoint.parsed.y;
-
-            if (value !== undefined && value !== null) {
-              tooltipEl.innerHTML = `Value: ${value.toFixed(2)}`; // Format value to 2 decimal places
-            } else {
-              tooltipEl.innerHTML = `Value: N/A`; // Fallback if value is undefined
-            }
-          }
-        }
+      grid: {
+        color: isDarkMode ? '#666666' : '#cccccc', // Dynamic grid color
       },
-      beforeDraw: (chart) => {
-        const ctx = chart.ctx;
-        const chartArea = chart.chartArea;
+    },
+    x: {
+      ticks: {
+        color: isDarkMode ? '#ffffff' : '#000000', // Dynamic text color
+      },
+      grid: {
+        color: isDarkMode ? '#666666' : '#cccccc', // Dynamic grid color
+      },
+    }
+  },
+  plugins: {
+    tooltip: {
+      enabled: true,
+      mode: 'nearest',
+      intersect: false,
+      external: function (context) {
+        const { chart, tooltip } = context;
+        const tooltipEl = chart.canvas.parentNode.querySelector('div.tooltip');
 
-        // Get the current background color from CSS
-        const backgroundColor = getComputedStyle(document.body).getPropertyValue('--color-background');
+        if (!tooltipEl) return;
 
-        // Fill the chart background with the dynamic color
-        ctx.save();
-        ctx.fillStyle = backgroundColor;
-        ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
-        ctx.restore();
+        if (tooltip.opacity === 0) {
+          tooltipEl.style.opacity = 0;
+          return;
+        }
+
+        const position = chart.canvas.getBoundingClientRect();
+        tooltipEl.style.opacity = 1;
+        tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 'px';
+        tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY + 'px';
+
+        tooltipEl.style.backgroundColor = isDarkMode ? '#333333' : '#ffffff';
+        tooltipEl.style.color = isDarkMode ? '#ffffff' : '#000000';
       }
     },
-    layout: {
-      padding: {
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-      }
-    },
-  };
+    beforeDraw: (chart) => {
+      const ctx = chart.ctx;
+      const chartArea = chart.chartArea;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = isDarkMode ? '#1f1f1f' : '#ffffff'; // Dynamic background color
+      ctx.fillRect(chartArea.left, chartArea.top, chartArea.width, chartArea.height);
+      ctx.restore();
+    }
+  }
+};
 
   return (
-    <Container fluid className={`MainApp d-flex p-3 ${isDarkMode ? 'bg-dark text-light' : 'bg-light text-dark'}`}>
-    <Col md={2} className="sidebar border-right"> {/* Apply the 'sidebar' class */}
-        <h2>Controls</h2>
-        <div className="mb-auto">
-          <DarkModeToggle />
-        </div>
+    <Container fluid className={`MainApp d-flex p-3 ${isDarkMode ? 'body.dark' : 'body.light'}`}>
+    <Col md={1} className="sidebar border-right" style={{ padding: '10px', width: '15%' }}>
+      <h2>Controls</h2>
+      <div className="control-section">
+        <h4>Screen Lock</h4>
         <Button
-          className="mb-auto"
+          className="mb-3"
           variant={isLocked ? 'danger' : 'success'}
           onClick={() => {
             const newLockState = !isLocked;
             setIsLocked(newLockState);
             console.log('Lock Screen Toggled:', newLockState);
           }}
+          style={{ width: '100%' }}
         >
           {isLocked ? 'Unlock Screen' : 'Lock Screen'}
         </Button>
-        <Button className="mb-auto" onClick={handleRecordToggle}>
+      </div>
+
+      <div className="control-section">
+        <h4>Recording</h4>
+        <Button className="mb-3" onClick={handleRecordToggle} style={{ width: '100%' }}>
           {isRecording ? 'Save Data' : 'Record Data'}
         </Button>
-        <Button className="mb-auto" onClick={handleScreenshot}>
+        <Button className="mb-3" onClick={handleScreenshot} style={{ width: '100%' }}>
           Capture Screenshot
         </Button>
-        <Button className="mb-auto" onClick={() => setShowFilterModal(true)}>
+      </div>
+
+      <div className="control-section">
+        <h4>Settings</h4>
+        <Button className="mb-3" onClick={() => setShowFilterModal(true)} style={{ width: '100%' }}>
           Filter Settings
         </Button>
-        <Button className="mb-auto" onClick={handlePsdClick}>
+        <Button className="mb-3" onClick={handlePsdClick} style={{ width: '100%' }}>
           Periodogram
         </Button>
-        <Button className="mb-auto" onClick={handleFuncGenClick}>
-        Function Generator
+        <Button className="mb-3" onClick={handleFuncGenClick} style={{ width: '100%' }}>
+          Function Generator
         </Button>
-        <Form.Group className="mb-auto">
-          <Form.Label>Offset:</Form.Label>
-          <Form.Control
-            type="number"
-            value={offset}
-            step="0.1"
-            onChange={(e) => setOffset(Number(e.target.value))}
-          />
-        </Form.Group>
+      </div>
 
-        <Form.Group className="mb-auto">
-          <Form.Label>Y-Axis Min:</Form.Label>
-          <Form.Control
-            type="number"
-            value={yMin}
-            onChange={(e) => setYMin(Number(e.target.value))}
-          />
-        </Form.Group>
+      <div className="control-section">
+        <h4>Adjustments</h4>
+        <Button className="mb-3" onClick={() => setShowAdjustmentsModal(true)} style={{ width: '100%' }}>
+          Adjust Chart
+        </Button>
+        {/* Modal for Offset Adjustment */}
+        <Modal show={showAdjustmentsModal} onHide={() => setShowAdjustmentsModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Adjustments</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {/* Offset */}
+            <Form.Group className="mb-3">
+              <Form.Label>Offset:</Form.Label>
+              <Form.Control
+                type="number"
+                value={offset}
+                step="0.1"
+                onChange={(e) => setOffset(Number(e.target.value))}
+              />
+            </Form.Group>
 
-        <Form.Group className="mb-auto">
-          <Form.Label>Y-Axis Max:</Form.Label>
-          <Form.Control
-            type="number"
-            value={yMax}
-            onChange={(e) => setYMax(Number(e.target.value))}
-          />
-        </Form.Group>
+            {/* Y-Axis Min */}
+            <Form.Group className="mb-3">
+              <Form.Label>Y-Axis Min:</Form.Label>
+              <Form.Control
+                type="number"
+                value={yMin}
+                onChange={(e) => setYMin(Number(e.target.value))}
+              />
+            </Form.Group>
 
-        <Form.Group className="mb-auto">
-          <Form.Label>X-Axis Points:</Form.Label>
-          <Form.Control
-            type="number"
-            value={points}
-            onChange={(e) => setPoints(Number(e.target.value))}
-          />
-        </Form.Group>
+            {/* Y-Axis Max */}
+            <Form.Group className="mb-3">
+              <Form.Label>Y-Axis Max:</Form.Label>
+              <Form.Control
+                type="number"
+                value={yMax}
+                onChange={(e) => setYMax(Number(e.target.value))}
+              />
+            </Form.Group>
 
-        <Form.Group className="mb-auto">
-          <Form.Label>Subsampling (1 = Min):</Form.Label>
-          <Form.Control
-            type="number"
-            value={subsampling}
-            onChange={(e) => setSubsampling(Math.max(1, Number(e.target.value)))}
-            min="1"
-          />
-        </Form.Group>
+            {/* X-Axis Points */}
+            <Form.Group className="mb-3">
+              <Form.Label>X-Axis Points:</Form.Label>
+              <Form.Control
+                type="number"
+                value={points}
+                onChange={(e) => setPoints(Number(e.target.value))}
+              />
+            </Form.Group>
 
-        <Form.Group className="mb-auto">
+            {/* Subsampling */}
+            <Form.Group className="mb-3">
+              <Form.Label>Subsampling (1 = Min):</Form.Label>
+              <Form.Control
+                type="number"
+                value={subsampling}
+                onChange={(e) => setSubsampling(Math.max(1, Number(e.target.value)))}
+                min="1"
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowAdjustmentsModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={() => setShowAdjustmentsModal(false)}>
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Form.Group className="mb-3">
           <Form.Label>Channel:</Form.Label>
           <Form.Control as="select" value={channel} onChange={handleChannelChange}>
             <option value="0">ch0</option>
@@ -554,7 +574,7 @@ function SignalPlotter() {
           </Form.Control>
         </Form.Group>
 
-        <Form.Group className="mb-auto">
+        <Form.Group className="mb-3">
           <Form.Label>Conversion formula (y = ...):</Form.Label>
           <Form.Control
             type="text"
@@ -562,9 +582,9 @@ function SignalPlotter() {
             onChange={(e) => setFormula(e.target.value)}
           />
         </Form.Group>
-      </Col>
-
-      <Col md={10} className="p-auto" style={{ backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff' }}>
+      </div>
+    </Col>
+    <Col md={11} className={`p-auto ${isDarkMode ? 'body.dark' : 'body.light'}`}>
         <h1>WaveSense</h1>
         {!isConnected && <p>Reconnecting to WebSocket...</p>}
         <div className="tooltip"
@@ -578,7 +598,7 @@ function SignalPlotter() {
                 pointerEvents: 'none',
                 transition: 'opacity 0.3s',}}></div>
         <Line ref={chartRef} data={data} options={options} />
-        {/* Filter Settings Modal */}
+        {/* Dynamically update the chart when dark mode changes */}
         <FilterSettingsModal
           show={showFilterModal}
           handleClose={() => setShowFilterModal(false)}
