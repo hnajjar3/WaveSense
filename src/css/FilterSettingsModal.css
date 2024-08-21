@@ -1,0 +1,27 @@
+/* FilterSettingsModal.css */
+.custom-modal .modal-dialog {
+  max-width: 400px; /* Set a fixed or max width */
+  margin: auto;
+}
+
+.custom-modal .modal-content {
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.modal-footer-custom {
+  justify-content: center; /* Center the buttons */
+}
+
+.input-field-custom {
+  border-radius: 4px; /* Slight rounding for inputs */
+}
+
+.switch-custom .form-check-input {
+  background-color: #007bff; /* Primary color switch */
+}
+
+.switch-custom .form-check-label {
+  font-weight: bold;
+  color: #333;
+}

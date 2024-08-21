@@ -92,6 +92,33 @@ body, html, #root, .App {
     stroke: var(--color-foreground) !important; /* Subtle grid lines */
 }
 
+.custom-modal .modal-content {
+  background-color: var(--color-background); /* Match background with app */
+  color: var(--color-foreground); /* Match text color with app */
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.custom-modal .modal-header {
+  border-bottom: none;
+}
+
+.custom-modal .modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--color-foreground); /* Match title color with app */
+}
+
+.custom-modal .modal-footer {
+  border-top: none;
+}
+
+.custom-modal .btn-secondary {
+  background-color: var(--color-foreground); /* Customize button color */
+  border: none;
+  color: var(--color-background); /* Match button text color with app */
+}
+
 @media (max-width: 768px) {
     .sidebar {
         width: 25%; /* Increase sidebar width for smaller screens */

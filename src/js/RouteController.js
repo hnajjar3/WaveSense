@@ -44,26 +44,7 @@ function RouteController() {
         <Route path="/sav-golay-filt" element={<SavitzkyGolayFilterView />} />
 
         {/* Default route for the Signal Plotter */}
-        <Route
-          path="/"
-          element={
-            <SignalPlotter
-              alpha={alpha}
-              filteringEnabled={filteringEnabled}
-            />
-          }
-        />
-
-        {/* Route for the Filter Settings */}
-        <Route
-          path="/filter-settings"
-          element={
-            <FilterSettings
-              setAlpha={setAlpha}
-              setFilteringEnabled={setFilteringEnabled}
-            />
-          }
-        />
+        <Route path="/" element={<SignalPlotter />} />
       </Routes>
     </Router>
   );

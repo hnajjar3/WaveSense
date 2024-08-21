@@ -3,32 +3,36 @@ import { useNavigate } from 'react-router-dom'; // Use useNavigate instead of us
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import Algebrite from 'algebrite'; // Import Algebrite
-import { Container, Row, Col, Button, Form } from 'react-bootstrap'; // Import Form and other Bootstrap components
+import { Container, Row, Col, Button, Form, Modal } from 'react-bootstrap'; // Import Form and other Bootstrap components
 import { DarkModeToggle } from './DarkModeToggle';
+import FilterSettingsModal from './FilterSettingsModal'; // Import the modal
 import '../css/App.css';
 import '../css/darkMode.css';
 
 Chart.register(...registerables);
 
-function SignalPlotter({ alpha, filteringEnabled }) {
-  const navigate = useNavigate(); // Initialize useNavigate
+function SignalPlotter() {
+  const navigate = useNavigate();
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
-  const statsWorker = useRef(null); // Initialize statsWorker
-  const [serverPort, setPort] = useState(80)
+  const statsWorker = useRef(null);
+  const [serverPort, setPort] = useState(80);
   const [isConnected, setIsConnected] = useState(false);
-  const [offset, setOffset] = useState(0); // Add default value
-  const [yMin, setYMin] = useState(-1); // Add default value
-  const [yMax, setYMax] = useState(1); // Add default value
-  const [points, setPoints] = useState(100); // Add default value
-  const [subsampling, setSubsampling] = useState(1); // Add default value
-  const [channel, setChannel] = useState(0); // Add default value
+  const [offset, setOffset] = useState(0);
+  const [yMin, setYMin] = useState(-1);
+  const [yMax, setYMax] = useState(1);
+  const [points, setPoints] = useState(100);
+  const [subsampling, setSubsampling] = useState(1);
+  const [channel, setChannel] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedData, setRecordedData] = useState([]);
   const [formula, setFormula] = useState('x');
-  const [configLoaded, setConfigLoaded] = useState(true); // Initialize configLoaded state
+  const [configLoaded, setConfigLoaded] = useState(true);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const alphaRef = useRef(0.2);
+  const filteringEnabledRef = useRef(true);
   const [stats, setStats] = useState({
     max: 'N/A',
     min: 'N/A',
@@ -36,7 +40,6 @@ function SignalPlotter({ alpha, filteringEnabled }) {
     rms: 'N/A',
   });
 
-  // Use refs to store current state values
   const isLockedRef = useRef(false);
   const subsamplingRef = useRef(1);
   const offsetRef = useRef(0);
@@ -69,6 +72,15 @@ function SignalPlotter({ alpha, filteringEnabled }) {
     isLockedRef.current = isLocked;
     console.log('isLocked state changed:', isLockedRef.current);
   }, [isLocked]);
+
+  // Handle changes from modal without causing re-renders
+  const handleAlphaChange = (newAlpha) => {
+    alphaRef.current = newAlpha;
+  };
+
+  const handleFilteringEnabledChange = (newFilteringEnabled) => {
+    filteringEnabledRef.current = newFilteringEnabled;
+  };
 
   useEffect(() => {
     recordingWorker.current = new Worker(new URL('./recordingWorker.js', import.meta.url));
@@ -217,6 +229,16 @@ function SignalPlotter({ alpha, filteringEnabled }) {
     navigate('/func-gen-ctl');
   };
 
+  // Function to handle opening the modal
+  const handleShowModal = () => {
+    setShowFilterModal(true);
+  };
+
+  // Function to handle closing the modal
+  const handleCloseModal = () => {
+    setShowFilterModal(false);
+  };
+
   // WebSocket handling
   useEffect(() => {
     if (configLoaded) {
@@ -226,14 +248,11 @@ function SignalPlotter({ alpha, filteringEnabled }) {
         ws = new WebSocket(`ws://localhost:${serverPort}`);
 
         ws.onopen = () => {
-          console.log('WebSocket connection established');
           setIsConnected(true);
         };
 
         ws.onmessage = (event) => {
           if (!isLockedRef.current) {
-            console.log(`${event.data}`);
-
             try {
               let { n, signal } = JSON.parse(event.data);
 
@@ -246,8 +265,8 @@ function SignalPlotter({ alpha, filteringEnabled }) {
               signal = signal + offsetRef.current;
 
               // Apply leaky integrator only if filtering is enabled
-              if (filteringEnabled) {
-                signal = alpha * signal + (1 - alpha) * previousFiltered.current;
+              if (filteringEnabledRef.current) {
+                signal = alphaRef.current * signal + (1 - alphaRef.current) * previousFiltered.current;
               }
 
               previousFiltered.current = signal;
@@ -256,7 +275,6 @@ function SignalPlotter({ alpha, filteringEnabled }) {
 
               sampleCounter.current++;
 
-              // Check if the chart exists and is available
               if (chartRef.current && chartRef.current.data && sampleCounter.current >= Math.max(1, subsamplingRef.current)) {
                 if (chartRef.current.data.labels.length >= pointsRef.current) {
                   removeData(chartRef.current);
@@ -268,7 +286,6 @@ function SignalPlotter({ alpha, filteringEnabled }) {
                   setRecordedData((prevData) => [...prevData, { sample: n, voltage: calculatedSignal }]);
                 }
 
-                // Send data to statsWorker for processing
                 statsWorker.current.postMessage({
                   action: 'process',
                   n: n,
@@ -276,28 +293,23 @@ function SignalPlotter({ alpha, filteringEnabled }) {
                 });
 
                 sampleCounter.current = 0;
-              } else {
-                console.log('Chart is not available on this route');
               }
             } catch (error) {
               console.error('Error parsing WebSocket message:', error);
             }
-          } else {
-            console.log('Screen is locked!');
           }
         };
 
         ws.onclose = () => {
-          console.log('WebSocket connection closed. Attempting to reconnect...');
-          setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
           setIsConnected(false);
+          setTimeout(connectWebSocket, 5000);
         };
       };
 
-      connectWebSocket(); // Initial connection
+      connectWebSocket();
 
       return () => {
-        ws.close(); // Clean up on component unmount
+        ws.close();
       };
     }
   }, [configLoaded]);
@@ -476,7 +488,7 @@ function SignalPlotter({ alpha, filteringEnabled }) {
         <Button className="mb-auto" onClick={handleScreenshot}>
           Capture Screenshot
         </Button>
-        <Button className="mb-auto" onClick={() => navigate('/filter-settings')}>
+        <Button className="mb-auto" onClick={() => setShowFilterModal(true)}>
           Filter Settings
         </Button>
         <Button className="mb-auto" onClick={handlePsdClick}>
@@ -566,6 +578,15 @@ function SignalPlotter({ alpha, filteringEnabled }) {
                 pointerEvents: 'none',
                 transition: 'opacity 0.3s',}}></div>
         <Line ref={chartRef} data={data} options={options} />
+        {/* Filter Settings Modal */}
+        <FilterSettingsModal
+          show={showFilterModal}
+          handleClose={() => setShowFilterModal(false)}
+          alpha={alphaRef.current}
+          setAlpha={handleAlphaChange}
+          filteringEnabled={filteringEnabledRef.current}
+          setFilteringEnabled={handleFilteringEnabledChange}
+        />
         <div
           style={{
             position: 'absolute',
