@@ -11,7 +11,7 @@ import '../css/darkMode.css';
 
 Chart.register(...registerables);
 
-const SignalPlotter = ({ isDarkMode }) => {
+const SignalPlotter = () => {
   const navigate = useNavigate();
   const chartRef = useRef(null);
   const recordingWorker = useRef(null);
@@ -30,6 +30,7 @@ const SignalPlotter = ({ isDarkMode }) => {
   const [formula, setFormula] = useState('x');
   const [configLoaded, setConfigLoaded] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const alphaRef = useRef(0.2);
   const filteringEnabledRef = useRef(true);
   const [showAdjustmentsModal, setShowAdjustmentsModal] = useState(false);
@@ -146,6 +147,9 @@ const SignalPlotter = ({ isDarkMode }) => {
   console.log(`Toggling dark ${isDarkMode}`)
   if (chartRef.current) {
     const chart = chartRef.current;
+    // 
+    document.body.classList.toggle('dark', isDarkMode);
+    document.body.classList.toggle('light', !isDarkMode);
 
     // Update chart options based on dark mode
     chart.options.scales.x.ticks.color = isDarkMode ? '#ffffff' : '#000000';
@@ -449,9 +453,13 @@ const SignalPlotter = ({ isDarkMode }) => {
 };
 
   return (
-    <Container fluid className={`MainApp d-flex p-3 ${isDarkMode ? 'body.dark' : 'body.light'}`}>
-    <Col md={1} className="sidebar border-right" style={{ padding: '10px', width: '15%' }}>
+    <Container fluid className={`SignalPlotter d-flex p-3 ${isDarkMode ? 'body.dark' : 'body.light'}`}>
+    <Col md={1} className="sidebar border-right" style={{ padding: '10px', width: '10%' }}>
       <h2>Controls</h2>
+      <div className="control-section">
+        {/* Place DarkModeToggle inside the sidebar */}
+        <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      </div>
       <div className="control-section">
         <h4>Screen Lock</h4>
         <Button
@@ -497,7 +505,7 @@ const SignalPlotter = ({ isDarkMode }) => {
           Adjust Chart
         </Button>
         {/* Modal for Offset Adjustment */}
-        <Modal show={showAdjustmentsModal} onHide={() => setShowAdjustmentsModal(false)} centered>
+        <Modal show={showAdjustmentsModal} onHide={() => setShowAdjustmentsModal(false)} centered size="sm" dialogClassName="custom-modal">
           <Modal.Header closeButton>
             <Modal.Title>Adjustments</Modal.Title>
           </Modal.Header>
@@ -554,7 +562,7 @@ const SignalPlotter = ({ isDarkMode }) => {
               />
             </Form.Group>
           </Modal.Body>
-          <Modal.Footer>
+          <Modal.Footer className="modal-footer-custom">
             <Button variant="secondary" onClick={() => setShowAdjustmentsModal(false)}>
               Close
             </Button>

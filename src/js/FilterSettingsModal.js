@@ -1,6 +1,5 @@
 import React from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import '../css/FilterSettingsModal.css';  // Import a custom CSS file if needed
 
 
 function FilterSettingsModal({ show, handleClose, alpha, setAlpha, filteringEnabled, setFilteringEnabled }) {

@@ -16,6 +16,19 @@ body, html, #root, .App {
 
 }
 
+.SignalPlotter {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  flex-direction: row;
+}
+
+.chart-container {
+  flex-grow: 1; /* Allow chart area to expand and take up remaining space */
+  overflow: hidden; /* Prevent horizontal scrolling */
+}
+
 /* Sidebar styling */
 .sidebar {
     background-color: var(--color-background); /* Match the main background */
@@ -27,6 +40,9 @@ body, html, #root, .App {
     flex-direction: column; /* Ensure items are stacked vertically */
     align-items: left; /* Center items horizontally */
     box-sizing: border-box;
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    max-width: 250px; /* Ensure sidebar doesn't get too wide */
+    overflow-y: auto; /* Allow sidebar to scroll if too tall */
 }
 
 .control-section h4 {
@@ -59,23 +75,15 @@ body, html, #root, .App {
     padding: 1px; /* Small padding for inputs and selects */
 }
 
-/* Styling for the Modal */
-.modal-content {
-  background-color: var(--modal-bg);
-  color: var(--modal-text);
-  border-radius: 10px;
-  padding: 20px;
-}
-
 /* Dark mode modal styles */
-.body.dark .modal-content {
-  --modal-bg: #333;
-  --modal-text: #fff;
+.body.dark {
+  --modal-bg: #333; /* Dark mode background */
+  --modal-text: #fff; /* Dark mode text */
 }
 
-.body.light .modal-content {
-  --modal-bg: #fff;
-  --modal-text: #000;
+.body.light {
+  --modal-bg: #fff; /* Light mode background */
+  --modal-text: #000; /* Light mode text */
 }
 
 /* Tooltip styling */
@@ -121,11 +129,30 @@ body, html, #root, .App {
     stroke: var(--color-foreground) !important; /* Subtle grid lines */
 }
 
-.custom-modal .modal-content {
-  background-color: var(--color-background); /* Match background with app */
-  color: var(--color-foreground); /* Match text color with app */
-  border-radius: 8px;
+/* Control the modal backdrop transparency */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.7); /* 30% transparency (70% opacity) */
+}
+
+/* Styling for the Modal */
+.modal-content {
+  background-color: var(--color-background, #fff); /* Fallback to white if --modal-bg is not defined */
+  color: var(--modal-text, #000); /* Fallback to black text */
+  border-radius: 10px;
   padding: 20px;
+}
+
+/* General Modal Styling */
+.custom-modal .modal-dialog {
+  max-width: 400px; /* Set a fixed or max width */
+  margin: auto;
+}
+
+.custom-modal .modal-content {
+  padding: 20px;
+  border-radius: 8px;
+  background-color: var(--color-background);
+  color: var(--modal-text);
 }
 
 .custom-modal .modal-header {
@@ -148,12 +175,39 @@ body, html, #root, .App {
   color: var(--color-background); /* Match button text color with app */
 }
 
+/* Input field styling inside modals */
+.input-field-custom {
+  border-radius: 4px;
+  width: 100%; /* Make input fields full width */
+  margin-bottom: 10px;
+}
+
+/* Switch styling inside modals */
+.switch-custom .form-check-input {
+  background-color: #007bff; /* Primary color switch */
+}
+
+.switch-custom .form-check-label {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Center buttons in modal footer */
+.modal-footer-custom {
+  justify-content: center; /* Center the buttons */
+}
+
 @media (max-width: 768px) {
-    .sidebar {
-        width: 25%; /* Increase sidebar width for smaller screens */
-        padding: 4px; /* Slightly increase padding on smaller screens */
-    }
-    .chart-container {
-        width: 75%; /* Adjust chart container accordingly */
-    }
+  .sidebar {
+    width: 100%; /* Sidebar takes full width on smaller screens */
+    height: auto; /* Adjust height */
+  }
+
+  .chart-container {
+    width: 100%;
+  }
+
+  .SignalPlotter {
+    flex-direction: column; /* Stack sidebar and chart vertically */
+  }
 }

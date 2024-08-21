@@ -35,11 +35,6 @@ function RouteController() {
 
   return (
     <Router>
-      {/* Add the DarkModeToggle at a higher level so it's available everywhere */}
-      <div>
-        <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
-      </div>
-
       <Routes>
         {/* Route for the Periodogram Plot */}
         <Route path="/periodogram" element={<PlotPeriodogram />} />
