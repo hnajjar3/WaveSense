@@ -41,9 +41,6 @@ function RouteController() {
         {/* Route for the Function Generator Control */}
         <Route path="/func-gen-ctl" element={<FunctionGeneratorControl />} />
 
-        {/* Route for the Savitzky-Golay Filter Settings */}
-        <Route path="/sav-golay-filt" element={<SavitzkyGolayFilterView />} />
-
         {/* Default route for the Signal Plotter */}
         {/* Pass isDarkMode, alpha, and filteringEnabled as props */}
         <Route
