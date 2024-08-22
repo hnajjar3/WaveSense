@@ -147,7 +147,7 @@ const SignalPlotter = () => {
   console.log(`Toggling dark ${isDarkMode}`)
   if (chartRef.current) {
     const chart = chartRef.current;
-    // 
+    //
     document.body.classList.toggle('dark', isDarkMode);
     document.body.classList.toggle('light', !isDarkMode);
 

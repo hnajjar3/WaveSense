@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 function PlotPeriodogram() {
   const [imageSrc, setImageSrc] = useState(null);
+  const location = useLocation();  // To receive the passed state (samplingRate)
+  const samplingRate = location.state?.samplingRate || 1000; // Default sampling rate if not provided
 
   useEffect(() => {
-    // Fetch the PSD plot from the FastAPI server
-    fetch('/periodogram')
+    // Fetch the PSD plot from the FastAPI server and include the sampling rate
+    fetch(`/periodogram?samplingRate=${samplingRate}`)
       .then((response) => response.blob())
       .then((imageBlob) => {
         const imageObjectURL = URL.createObjectURL(imageBlob);
@@ -14,7 +17,7 @@ function PlotPeriodogram() {
       .catch((error) => {
         console.error('Error fetching periodogram:', error);
       });
-  }, []);
+  }, [samplingRate]);
 
   return (
     <div>

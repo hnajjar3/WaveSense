@@ -119,9 +119,9 @@ async def set_channel(channel_data: Channel):
         logger.error(f"Failed to switch channel on Node.js: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to switch channel on Node.js: {e}")
 
-# Serve Spectrum plot
+# Serve Spectrum plot with an optional sampling rate
 @app.get("/periodogram")
-async def plot_periodogram():
+async def plot_periodogram(samplingRate: int = None):
     try:
         logger.info("/periodogram endpoint called.")
 
@@ -136,9 +136,12 @@ async def plot_periodogram():
         if len(signal_data) == 0:
             return {"error": "No data available"}
 
+        # If sampling rate is provided in the request, override the config
+        final_sampling_rate = samplingRate if samplingRate else config["samplingRate"]
+
         # Estimate PSD and get the plot as a PNG
-        logger.info(f'Computing Periodogram using sample size {len(signal_data)}')
-        buf = estimate_psd(np.array(time_data), np.array(signal_data), config["samplingRate"])
+        logger.info(f'Computing Periodogram using sample size {len(signal_data)} and sampling rate {final_sampling_rate}')
+        buf = estimate_psd(np.array(time_data), np.array(signal_data), final_sampling_rate)
 
         logger.info("Periodogram successfully generated")
         return Response(content=buf.getvalue(), media_type="image/png")
