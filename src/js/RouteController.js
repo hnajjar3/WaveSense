@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SignalPlotter from './SignalPlotter';
 import PlotPeriodogram from './PlotPeriodogram';  // Import the PSD plotting component
 import FunctionGeneratorControl from './FunctionGeneratorControl';
-import SavitzkyGolayFilterView from './SavitzkyGolayFilterView'; // Create this component
 import FilterSettings from './FilterSettings';
 import { DarkModeToggle } from './DarkModeToggle';
 
